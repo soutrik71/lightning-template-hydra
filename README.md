@@ -1,5 +1,21 @@
 # Lightning Hydra Project Template
 
+## Requirements
+
+Using pip
+
+```bash
+pip install -r requirements.txt
+```
+
+Using UV
+
+```bash
+uv venv
+uv pip install -r pyproject.toml
+source .venv/bin/activate
+```
+
 ## Train
 
 ```bash
