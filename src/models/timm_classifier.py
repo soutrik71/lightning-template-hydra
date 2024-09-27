@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from torch import optim
 from torchmetrics import Accuracy
 
+
 class TimmClassifier(L.LightningModule):
     def __init__(
         self,
@@ -15,15 +16,13 @@ class TimmClassifier(L.LightningModule):
         weight_decay: float = 1e-5,
         scheduler_factor: float = 0.1,
         scheduler_patience: int = 10,
-        min_lr: float = 1e-6
+        min_lr: float = 1e-6,
     ):
         super().__init__()
         self.save_hyperparameters()
 
         self.model = timm.create_model(
-            model_name,
-            pretrained=pretrained,
-            num_classes=num_classes
+            model_name, pretrained=pretrained, num_classes=num_classes
         )
 
         self.train_acc = Accuracy(task="multiclass", num_classes=num_classes)
@@ -65,16 +64,16 @@ class TimmClassifier(L.LightningModule):
         optimizer = optim.Adam(
             self.parameters(),
             lr=self.hparams.lr,
-            weight_decay=self.hparams.weight_decay
+            weight_decay=self.hparams.weight_decay,
         )
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             factor=self.hparams.scheduler_factor,
             patience=self.hparams.scheduler_patience,
-            min_lr=self.hparams.min_lr
+            min_lr=self.hparams.min_lr,
         )
         return {
             "optimizer": optimizer,
             "lr_scheduler": scheduler,
-            "monitor": "val/loss"
+            "monitor": "val/loss",
         }
