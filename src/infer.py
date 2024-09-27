@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision import transforms
 
-from models.catdog_classifier import CatDogClassifier
+from models.timm_classifier import CatDogClassifier
 from utils.logging_utils import setup_logger, task_wrapper, get_rich_progress
 
 @task_wrapper
