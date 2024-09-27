@@ -7,6 +7,7 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torchvision.datasets.utils import download_and_extract_archive
 
+
 class CatDogImageDataModule(L.LightningDataModule):
     def __init__(
         self,
@@ -23,11 +24,15 @@ class CatDogImageDataModule(L.LightningDataModule):
         self.num_workers = num_workers
         self.pin_memory = pin_memory
 
-        self.transforms = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-        ])
+        self.transforms = transforms.Compose(
+            [
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
     def prepare_data(self):
         """Download images and prepare images datasets."""
@@ -35,12 +40,15 @@ class CatDogImageDataModule(L.LightningDataModule):
             download_and_extract_archive(
                 url="https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip",
                 download_root=self.data_dir,
-                remove_finished=True
+                remove_finished=True,
             )
 
     def setup(self, stage: Optional[str] = None):
         if stage == "fit" or stage is None:
-            full_dataset = ImageFolder(root=self.data_dir / "cats_and_dogs_filtered" / "train", transform=self.transforms)
+            full_dataset = ImageFolder(
+                root=self.data_dir / "cats_and_dogs_filtered" / "train",
+                transform=self.transforms,
+            )
             train_size = int(self.train_val_test_split[0] * len(full_dataset))
             val_size = int(self.train_val_test_split[1] * len(full_dataset))
             test_size = len(full_dataset) - train_size - val_size

@@ -1,0 +1,9 @@
+.venv
+/data/
+/logs/
+/outputs/
+/predictions/
+/samples/
+.coverage
+.pytest_cache
+bin
