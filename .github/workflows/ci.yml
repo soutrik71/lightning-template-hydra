@@ -30,11 +30,13 @@ jobs:
           uv run coverage xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }} # required
+          files: ./coverage.xml
           flags: unittests
           fail_ci_if_error: true
+          verbose: true
 
   build-and-push-image:
     name: Build and Push Docker Image
