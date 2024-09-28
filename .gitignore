@@ -166,3 +166,4 @@ cython_debug/
 /outputs/
 /predictions/
 /samples/
+bin
