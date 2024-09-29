@@ -1,13 +1,14 @@
-import sys
+import sys, os
 from pathlib import Path
 from functools import wraps
+
 from loguru import logger
-from rich.table import Table
-from rich import print as rich_print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 
 def setup_logger(log_file):
+    """Set up the logger with a file and console handler."""
+    os.makedirs(Path(log_file).parent, exist_ok=True)
     logger.remove()
     logger.add(
         sys.stderr,
@@ -17,6 +18,8 @@ def setup_logger(log_file):
 
 
 def task_wrapper(func):
+    """Wrapper to log the start and end of a task."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         func_name = func.__name__
@@ -32,21 +35,8 @@ def task_wrapper(func):
     return wrapper
 
 
-def log_metrics_table(metrics: dict, title: str):
-    table = Table(title=title)
-    table.add_column("Metric", style="cyan")
-    table.add_column("Value", style="magenta")
-
-    for key, value in metrics.items():
-        if isinstance(value, (int, float)):
-            table.add_row(key, f"{value:.4f}")
-        else:
-            table.add_row(key, str(value))
-
-    rich_print(table)
-
-
 def get_rich_progress():
+    """Get a Rich Progress object."""
     return Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),

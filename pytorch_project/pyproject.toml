@@ -24,6 +24,8 @@ ruff = "^0.1.0"  # Ruff is a linter and can be added here as a dev tool
 torch = {version = "^2.4.1+cpu", source = "pytorch_cpu"}
 torchvision = {version = "^0.19.1+cpu", source = "pytorch_cpu"}
 seaborn = "^0.13.2"
+pydantic = "^2.9.2"
+kaggle = "^1.6.17"
 
 [[tool.poetry.source]]
 name = "pytorch_cpu"

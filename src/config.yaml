@@ -1,0 +1,21 @@
+data_config:
+  data_dir: data
+  kaggle_dataset_path: "khushikhushikhushi/dog-breed-image-dataset"
+  artifact_path: "artifacts"
+
+dataloader_config:
+  batch_size: 64
+  num_workers: 4
+
+model_config:
+  model_name: "resnet18"
+  lr: 0.001
+  weight_decay: 1e-6
+  scheduler_factor: 0.1
+  scheduler_patience: 2
+  min_lr: 1e-6
+
+train_config:
+  num_epochs: 7
+  seed: 42
+  checkpoint_path: "checkpoints/best-checkpoint.ckpt"

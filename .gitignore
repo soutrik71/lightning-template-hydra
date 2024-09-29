@@ -169,3 +169,8 @@ cython_debug/
 
 bin
 .venv/
+*.env
+*.zip
+checkpoints/
+artifacts/
+model_output/
