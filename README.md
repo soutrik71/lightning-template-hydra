@@ -1,44 +1,24 @@
 # Lightning Hydra Template
-
-## UV
-
-```bash
-UV_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu uv sync
-```
-
-## Train
-
-Dev Run
+- src/settings.py: Configurations for the project (e.g. paths, hyperparameters)
+- .env and src/config.yaml 
+- src/train.py: Train a model
+- src/infer.py: Infer with a model
+- From Dockerfile, you can build a docker image and run a container
+- docker-compose.yml: You can build a docker image and run a containers for first training and inference upon completion of training
+  
+## Train a model and Infer Dev
 
 ```bash
-python src/train.py experiment=catdog_ex +trainer.fast_dev_run=True
-```
-
-```bash
-python src/train.py experiment=catdog_ex +trainer.log_every_n_steps=5
-```
-
-## Docker
-
-```bash
-docker build -t lightning-hydra .
+python src/train.py
 ```
 
 ```bash
-docker run -it --rm \
-	-v `pwd`/data:/app/data \
-	-v `pwd`/logs:/app/logs \
-	lightning-hydra \
-	python src/train.py experiment=catdog_ex
+python src/infer.py
 ```
 
-## Coverage
+## Docker Compose 
 
 ```bash
-coverage run -m pytest
-coverage report -m
+docker-compose build
+docker-compose up
 ```
-
-## Github Actions
-
-Test locally with https://nektosact.com/
