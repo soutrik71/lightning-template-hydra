@@ -76,7 +76,7 @@ def setup_run_trainer():
         devices="auto",
         log_every_n_steps=settings.train_config.log_every_n_steps,
     )
-
+    logger.info("Starting training and testing")
     train_and_test(dogbreed_datamodule, model, trainer)
 
     # After training completes:
