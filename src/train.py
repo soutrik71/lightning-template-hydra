@@ -74,9 +74,14 @@ def setup_run_trainer():
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         logger=TensorBoardLogger(save_dir="logs", name="dogbreed_classifier"),
         devices="auto",
+        log_every_n_steps=settings.train_config.log_every_n_steps,
     )
 
     train_and_test(dogbreed_datamodule, model, trainer)
+
+    # After training completes:
+    with open("./checkpoints/train_done.flag", "w") as f:
+        f.write("Training completed.\n")
 
 
 if __name__ == "__main__":

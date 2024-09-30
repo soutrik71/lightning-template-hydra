@@ -72,6 +72,11 @@ def download_image():
 
 @task_wrapper
 def main():
+    # remove the file if it exists "./checkpoints/train_done.flag"
+
+    if os.path.exists("./checkpoints/train_done.flag"):
+        os.remove("./checkpoints/train_done.flag")
+
     # Load the trained model
     logger.info(
         f"Loading model from checkpoint: {settings.train_config.checkpoint_path}"
@@ -118,6 +123,10 @@ def main():
                     f"Processed {image_file}: {predicted_label} ({confidence:.2f})"
                 )
                 progress.advance(task)
+
+                logger.info(
+                    f"Processed {image_file}: {predicted_label} ({confidence:.2f})"
+                )
 
 
 if __name__ == "__main__":

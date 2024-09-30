@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  train:
+    build:
+      context: .
+    command: python -m src.train  # Run training script
+    volumes:
+      - data:/app/data
+      - checkpoints:/app/checkpoints
+      - artifacts:/app/artifacts
+    shm_size: '4g' 
+    networks:
+      - default
+    env_file:
+      - .env  # Load environment variables
+
+  inference:
+    build:
+      context: .
+    # Wait for the 'train_done.flag' file to appear before running inference
+    command: /bin/bash -c "while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 10; done; python -m src.infer"
+    volumes:
+      - checkpoints:/app/checkpoints
+      - artifacts:/app/artifacts
+    shm_size: '4g'
+    networks:
+      - default
+    depends_on:
+      - train
+    env_file:
+      - .env  # Load environment variables
+
+volumes:
+  data:
+  checkpoints:
+  artifacts:
+
+networks:
+  default:

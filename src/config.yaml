@@ -19,3 +19,4 @@ train_config:
   num_epochs: 7
   seed: 42
   checkpoint_path: "checkpoints/best-checkpoint.ckpt"
+  log_every_n_steps: 5

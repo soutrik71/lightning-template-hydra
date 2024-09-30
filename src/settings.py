@@ -35,6 +35,7 @@ class TrainConfig(BaseModel):
     seed: int = Field(..., description="Seed for reproducibility")
     num_epochs: int = Field(..., description="Maximum number of epochs")
     checkpoint_path: str = Field(..., description="Path to the checkpoint directory")
+    log_every_n_steps: int = Field(..., description="Log every n steps")
 
 
 class Settings(BaseSettings):

@@ -7,3 +7,8 @@
 .coverage
 .pytest_cache
 bin
+artifacts/
+data/
+logs/
+model_output/
+checkpoints/
