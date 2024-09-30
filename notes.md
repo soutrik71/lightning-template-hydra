@@ -1,4 +1,4 @@
-## __Installation__
+## __POETRY SETUP__
 ```bash
 # Install poetry
 conda create -n poetry_env python=3.10 -y
@@ -21,19 +21,23 @@ poetry add matplotlib
 poetry add hydra-core
 poetry add omegaconf
 poetry add hydra_colorlog
+poetry lock
+poetry show
+```
 
+## __MULTISTAGEDOCKER SETUP__
 
-# Step-by-Step Guide to Creating Dockerfile and docker-compose.yml for a New Code Repo
+#### Step-by-Step Guide to Creating Dockerfile and docker-compose.yml for a New Code Repo
 
 If you're new to the project and need to set up Docker and Docker Compose to run the training and inference steps, follow these steps.
 
 ---
 
-## 1. Setting Up the Dockerfile
+### 1. Setting Up the Dockerfile
 
 A Dockerfile is a set of instructions that Docker uses to create an image. In this case, we'll use a **multi-stage build** to make the final image lightweight while managing dependencies with `Poetry`.
 
-### Step-by-Step Process for Creating the Dockerfile
+#### Step-by-Step Process for Creating the Dockerfile
 
 1. **Choose a Base Image**:
    - We need to choose a Python image that matches the project's required version (e.g., Python 3.10.14).
@@ -120,7 +124,7 @@ CMD ["python", "-m", "src.train"]
 
 ---
 
-## 2. Setting Up the docker-compose.yml File
+### 2. Setting Up the docker-compose.yml File
 
 The `docker-compose.yml` file is used to define and run multiple Docker containers as services. In this case, we need two services: one for **training** and one for **inference**.
 
@@ -240,7 +244,7 @@ networks:
 
 ---
 
-## Summary
+### Summary
 
 1. **Dockerfile**:
    - A multi-stage Dockerfile is used to create a lightweight image where the dependencies are installed with Poetry and the application code is run using a virtual environment.
