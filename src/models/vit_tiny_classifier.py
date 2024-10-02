@@ -1,30 +1,44 @@
 import lightning as L
-import timm
 import torch
 import torch.nn.functional as F
 from torch import optim
 from torchmetrics import Accuracy
+from timm.models import VisionTransformer
 
 
-class TimmClassifier(L.LightningModule):
+class ViTTinyClassifier(L.LightningModule):
     def __init__(
         self,
-        base_model: str = "resnet18",
+        img_size: int = 224,
         num_classes: int = 2,
-        pretrained: bool = True,
+        embed_dim: int = 64,
+        depth: int = 6,
+        num_heads: int = 2,
+        patch_size: int = 16,
+        mlp_ratio: float = 3.0,
+        pre_norm: bool = False,
         lr: float = 1e-3,
         weight_decay: float = 1e-5,
         factor: float = 0.1,
         patience: int = 10,
         min_lr: float = 1e-6,
-        **kwargs,
     ):
         super().__init__()
         self.save_hyperparameters()
 
-        # Load pre-trained model
-        self.model = timm.create_model(
-            base_model, pretrained=pretrained, num_classes=num_classes, **kwargs
+        # Create ViT model
+        self.model = VisionTransformer(
+            img_size=img_size,
+            patch_size=patch_size,
+            in_chans=3,
+            num_classes=num_classes,
+            embed_dim=embed_dim,
+            depth=depth,
+            num_heads=num_heads,
+            mlp_ratio=mlp_ratio,
+            qkv_bias=False,
+            pre_norm=pre_norm,
+            global_pool="token",
         )
 
         # Multi-class accuracy
@@ -64,7 +78,7 @@ class TimmClassifier(L.LightningModule):
         self.log("test/acc", self.test_acc, prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = optim.Adam(
+        optimizer = optim.AdamW(
             self.parameters(),
             lr=self.hparams.lr,
             weight_decay=self.hparams.weight_decay,

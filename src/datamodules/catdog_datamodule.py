@@ -15,8 +15,9 @@ class CatDogImageDataModule(L.LightningDataModule):
         data_dir: Union[str, Path] = "data",
         num_workers: int = 0,
         batch_size: int = 8,
-        splits: Tuple[float, float, float] = (0.8, 0.1, 0.1),
+        splits: Tuple[float, float] = (0.8, 0.2),  # Changed to two splits
         pin_memory: bool = False,
+        image_size: int = 224,
     ):
         super().__init__()
         self._data_dir = Path(data_dir)
@@ -25,6 +26,7 @@ class CatDogImageDataModule(L.LightningDataModule):
         self._splits = splits
         self._pin_memory = pin_memory
         self._dataset = None
+        self._image_size = image_size
 
     def prepare_data(self):
         """Download images if not already downloaded and extracted."""
@@ -50,7 +52,7 @@ class CatDogImageDataModule(L.LightningDataModule):
     def train_transform(self):
         return transforms.Compose(
             [
-                transforms.Resize((224, 224)),
+                transforms.Resize((self._image_size, self._image_size)),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
                 self.normalize_transform,
@@ -61,7 +63,7 @@ class CatDogImageDataModule(L.LightningDataModule):
     def valid_transform(self):
         return transforms.Compose(
             [
-                transforms.Resize((224, 224)),
+                transforms.Resize((self._image_size, self._image_size)),
                 transforms.ToTensor(),
                 self.normalize_transform,
             ]
@@ -72,15 +74,19 @@ class CatDogImageDataModule(L.LightningDataModule):
 
     def setup(self, stage: str = None):
         if self._dataset is None:
-            self._dataset = self.create_dataset(
+            train_dataset = self.create_dataset(
                 self.data_path / "cats_and_dogs_filtered" / "train",
                 self.train_transform,
             )
-            train_size = int(self._splits[0] * len(self._dataset))
-            val_size = int(self._splits[1] * len(self._dataset))
-            test_size = len(self._dataset) - train_size - val_size
-            self.train_dataset, self.val_dataset, self.test_dataset = random_split(
-                self._dataset, [train_size, val_size, test_size]
+            train_size = int(self._splits[0] * len(train_dataset))
+            val_size = len(train_dataset) - train_size
+            self.train_dataset, self.val_dataset = random_split(
+                train_dataset, [train_size, val_size]
+            )
+
+            self.test_dataset = self.create_dataset(
+                self.data_path / "cats_and_dogs_filtered" / "validation",
+                self.valid_transform,
             )
 
     def __dataloader(self, dataset, shuffle: bool = False):

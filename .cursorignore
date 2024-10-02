@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -167,5 +168,3 @@ cython_debug/
 /predictions/
 /samples/
 bin
-/data
-/logs

@@ -1,0 +1,89 @@
+name: Train and Report
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+
+    - name: Set up Python 3.12
+      run: uv python install 3.12
+
+    - name: Install dependencies
+      env:
+        UV_EXTRA_INDEX_URL: https://download.pytorch.org/whl/cpu
+      run: |
+        uv sync
+
+    - name: Setup DVC
+      uses: iterative/setup-dvc@v1
+
+    - name: Setup CML
+      uses: iterative/setup-cml@v1
+
+    - name: Pull DVC data
+      env:
+        GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+      run: dvc pull
+
+    - name: Train model
+      run: |
+        dvc repro
+
+    - name: Create CML report
+      env:
+        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Find the latest metrics.csv file
+        METRICS_FILE=$(find logs/train/runs -name "metrics.csv" | sort -r | head -n 1)
+        
+        # Create plots using the metrics
+        echo "## Training Metrics" >> report.md
+        echo "### Accuracy" >> report.md
+        cml plot $METRICS_FILE --x-axis step --y-axis train/acc,val/acc --title "Training and Validation Accuracy" >> report.md
+        echo "### Loss" >> report.md
+        cml plot $METRICS_FILE --x-axis step --y-axis train/loss,val/loss --title "Training and Validation Loss" >> report.md
+        
+        # Add test metrics if available
+        if grep -q "test/acc" $METRICS_FILE; then
+          echo "## Test Metrics" >> report.md
+          TEST_ACC=$(tail -n 1 $METRICS_FILE | cut -d',' -f3)
+          TEST_LOSS=$(tail -n 1 $METRICS_FILE | cut -d',' -f4)
+          echo "- Test Accuracy: $TEST_ACC" >> report.md
+          echo "- Test Loss: $TEST_LOSS" >> report.md
+        fi
+        
+        # Compare DVC metrics to main branch
+        echo "## DVC Metrics Comparison" >> report.md
+        git fetch --depth=1 origin main:main
+        dvc metrics diff --show-md main >> report.md
+        
+        # Create and post the report
+        cml comment create report.md
+
+    # - name: Upload TensorBoard logs
+    #   env:
+    #     TB_CREDENTIALS: ${{ secrets.TB_CREDENTIALS }}
+    #   run: |
+    #     # Find the latest TensorBoard log directory
+    #     TB_LOGDIR=$(find logs/train/runs -name "tensorboard" | sort -r | head -n 1)
+        
+    #     # Connect to TensorBoard and add the link to the report
+    #     cml tensorboard connect \
+    #       --logdir=$TB_LOGDIR \
+    #       --name="View TensorBoard" \
+    #       --md >> tensorboard_report.md
+        
+    #     # Post the TensorBoard link
+    #     cml comment create tensorboard_report.md
