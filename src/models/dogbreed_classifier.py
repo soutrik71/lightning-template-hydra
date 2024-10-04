@@ -1,12 +1,8 @@
 import timm
 import torch.nn.functional as F
 from torch import nn, optim
-
 import lightning as L
-
 from torchmetrics import Accuracy
-from src.settings import settings
-from pydantic.v1 import BaseSettings
 from loguru import logger
 
 
@@ -14,18 +10,26 @@ class DogbreedClassifier(L.LightningModule):
     def __init__(
         self,
         num_classes: int,
-        lr: float = settings.model_config.lr,
-        weight_decay: float = settings.model_config.weight_decay,
-        scheduler_factor: float = settings.model_config.scheduler_factor,
-        scheduler_patience: int = settings.model_config.scheduler_patience,
-        min_lr: float = settings.model_config.min_lr,
+        model_name: str = "resnet18",  # Default model
+        lr: float = 0.001,  # Default learning rate
+        weight_decay: float = 1e-5,  # Default weight decay
+        scheduler_factor: float = 0.1,  # Default scheduler factor
+        scheduler_patience: int = 10,  # Default scheduler patience
+        min_lr: float = 1e-6,  # Default minimum learning rate
+        pretrained: bool = True,  # Whether to use pretrained model
     ):
         """
         Initialize the DogBreedClassifier.
 
         Args:
             num_classes (int): The number of dog breed classes.
-            lr (float): Learning rate for the optimizer.
+            model_name (str): Name of the pre-trained model (default: "resnet18").
+            lr (float): Learning rate for the optimizer (default: 0.001).
+            weight_decay (float): Weight decay for the optimizer (default: 1e-5).
+            scheduler_factor (float): Factor for learning rate scheduler (default: 0.1).
+            scheduler_patience (int): Number of epochs with no improvement after which learning rate will be reduced (default: 10).
+            min_lr (float): Minimum learning rate (default: 1e-6).
+            pretrained (bool): Whether to use a pre-trained model (default: True).
         """
         super().__init__()
         self.lr = lr
@@ -35,10 +39,10 @@ class DogbreedClassifier(L.LightningModule):
         self.scheduler_patience = scheduler_patience
         self.min_lr = min_lr
 
-        # Load pre-trained ResNet18 model and adjust the final layer for the correct number of classes
+        # Load the model with dynamic options for model name and pre-trained weights
         self.model = timm.create_model(
-            settings.model_config.model_name,
-            pretrained=True,
+            model_name,
+            pretrained=pretrained,
             num_classes=self.num_classes,
         )
 
@@ -95,12 +99,13 @@ class DogbreedClassifier(L.LightningModule):
         self.log("test_acc", self.val_acc, prog_bar=True, on_step=False, on_epoch=True)
 
     def configure_optimizers(self):
-
+        # Optimizer
         optimizer = optim.Adam(
             self.parameters(),
-            lr=self.hparams.lr,
+            lr=self.lr,
             weight_decay=self.weight_decay,
         )
+        # Scheduler
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
             factor=self.scheduler_factor,

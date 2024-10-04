@@ -2,22 +2,19 @@ import os
 import lightning as L
 from torchvision import transforms
 from pathlib import Path
-from pydantic.v1 import BaseModel, Field, BaseSettings
-import zipfile
-import yaml, shutil
-from PIL import Image
-from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader, random_split
-import pandas as pd
-from src.settings import settings
 from pydantic.v1 import BaseSettings
+import zipfile
+import pandas as pd
+from PIL import Image
+from torch.utils.data import Dataset, DataLoader, random_split
 from loguru import logger
 import kaggle
+import hydra
+from omegaconf import DictConfig
 
 
 def download_data_kaggle(settings: BaseSettings):
     """Download the dataset from Kaggle."""
-    # Download the dataset if the file does not exist
     if not os.path.exists(
         f'{settings.data_config.kaggle_dataset_path.split("/")[-1]}.zip'
     ):
@@ -26,7 +23,7 @@ def download_data_kaggle(settings: BaseSettings):
             settings.data_config.kaggle_dataset_path, path="./", unzip=False
         )
     if not os.path.exists(settings.data_config.data_dir):
-        logger.info("Data directoy doesnot exists")
+        logger.info("Data directory does not exist, creating it.")
         os.makedirs(settings.data_config.data_dir)
 
     # Unzip the dataset
@@ -42,23 +39,17 @@ def download_data_kaggle(settings: BaseSettings):
 
 
 def input_dataprep(settings: BaseSettings):
-    # Download the dataset
+    """Prepare the input data."""
     download_data_kaggle(settings)
-    # Path to the training dataset
-
-    TRAIN_PATH = Path(
+    # Path to the dataset
+    dataset_path = Path(
         f"{settings.data_config.data_dir}/{settings.data_config.kaggle_dataset_path.split('/')[-1]}/dataset"
     )
-    IMAGE_PATH_LIST = list(TRAIN_PATH.glob("*/*.jpg"))
-    logger.info(f"Total Images = {len(IMAGE_PATH_LIST)}")
+    image_path_list = list(dataset_path.glob("*/*.jpg"))
+    logger.info(f"Total Images = {len(image_path_list)}")
 
-    # creating a mapping file for the classes
-    images_path = [None] * len(IMAGE_PATH_LIST)
-    labels = [None] * len(IMAGE_PATH_LIST)
-
-    for i, img_path in enumerate(IMAGE_PATH_LIST):
-        images_path[i] = img_path
-        labels[i] = img_path.parent.stem
+    images_path = [str(img_path) for img_path in image_path_list]
+    labels = [img_path.parent.stem for img_path in image_path_list]
 
     dataset_df = pd.DataFrame({"image_path": images_path, "label": labels})
 
@@ -75,15 +66,12 @@ class DogbreedDataset(Dataset):
             transform: A function/transform that takes in a PIL image and returns a transformed version.
         """
         super().__init__()
-
         self.paths = df["image_path"].tolist()
         self.labels = df["label"].tolist()
         self.transform = transform
 
         self.classes = sorted(df["label"].unique())
-        self.class_to_idx = {
-            cls_name: idx for idx, cls_name in enumerate(self.classes)
-        }  # Map class names to indices
+        self.class_to_idx = {cls_name: idx for idx, cls_name in enumerate(self.classes)}
 
     def load_image(self, index: int) -> Image.Image:
         """Load image from file."""
@@ -111,22 +99,34 @@ class DogbreedDataModule(L.LightningDataModule):
 
     def __init__(
         self,
-        dataset_df,
-        num_workers: int = settings.dataloader_config.num_workers,
-        batch_size: int = settings.dataloader_config.batch_size,
+        dataset_df: pd.DataFrame,
+        train_split: float = 0.8,
+        val_split: float = 0.1,
+        test_split: float = 0.1,
+        img_size: int = 224,
+        num_workers: int = 4,
+        batch_size: int = 32,
+        **kwargs,
     ):
         """
-        Initialize the DataModule with dataset DataFrame, batch size, and number of workers.
-
         Args:
             dataset_df (pd.DataFrame): DataFrame containing image paths and labels.
+            train_split (float): Percentage of data to use for training.
+            val_split (float): Percentage of data to use for validation.
+            test_split (float): Percentage of data to use for testing.
+            img_size (int): Size to resize images to.
             num_workers (int): Number of workers for data loading.
             batch_size (int): Batch size for DataLoader.
         """
         super().__init__()
-        self.dataset_df = dataset_df  # Store the DataFrame with image paths and labels
-        self.num_workers = num_workers  # Set number of workers for data loading
-        self.batch_size = batch_size  # Set the batch size
+        assert train_split + val_split + test_split == 1.0, "Splits must sum to 1.0"
+        self.dataset_df = dataset_df
+        self.train_split = train_split
+        self.val_split = val_split
+        self.test_split = test_split
+        self.img_size = img_size
+        self.num_workers = num_workers
+        self.batch_size = batch_size
 
     @property
     def normalize_transform(self):
@@ -140,45 +140,37 @@ class DogbreedDataModule(L.LightningDataModule):
         """Return a composition of data augmentations and transformations for training."""
         return transforms.Compose(
             [
-                transforms.Resize((224, 224)),  # Resize image to 224x224
-                transforms.RandomHorizontalFlip(),  # Random horizontal flip
-                transforms.ToTensor(),  # Convert to tensor
-                self.normalize_transform,  # Normalize the image
+                transforms.Resize((self.img_size, self.img_size)),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                self.normalize_transform,
             ]
         )
 
     def setup(self, stage: str = None):
         """
-        Called by Lightning to initialize the datasets for the train, val, and test stages.
-        This method sets up the datasets depending on the current stage.
-
+        Initialize datasets for the train, val, and test stages.
         Args:
             stage (str): Either 'fit', 'test', or None.
         """
         dataset = DogbreedDataset(self.dataset_df, transform=self.train_transform)
 
-        if stage == "fit" or stage is None:
-            # Split dataset into train (80%) and val (10%)
-            train_size = int(0.8 * len(dataset))
-            val_size = len(dataset) - train_size
-            self.train_dataset, self.val_dataset = random_split(
-                dataset, [train_size, val_size]
-            )
+        # Split dataset
+        total_size = len(dataset)
+        train_size = int(self.train_split * total_size)
+        val_size = int(self.val_split * total_size)
+        test_size = total_size - train_size - val_size
 
-        if stage == "test":
-            # use the val_dataset for testing
-            train_size = int(0.8 * len(dataset))
-            val_size = len(dataset) - train_size
-            self.train_dataset, self.test_dataset = random_split(
-                dataset, [train_size, val_size]
-            )
+        self.train_dataset, self.val_dataset, self.test_dataset = random_split(
+            dataset, [train_size, val_size, test_size]
+        )
 
     def train_dataloader(self):
         """Return the DataLoader for the training set."""
         return DataLoader(
             self.train_dataset,
             batch_size=self.batch_size,
-            shuffle=True,  # Shuffle data during training
+            shuffle=True,
             num_workers=self.num_workers,
         )
 
@@ -187,7 +179,7 @@ class DogbreedDataModule(L.LightningDataModule):
         return DataLoader(
             self.val_dataset,
             batch_size=self.batch_size,
-            shuffle=False,  # Do not shuffle validation data
+            shuffle=False,
             num_workers=self.num_workers,
         )
 
@@ -196,14 +188,16 @@ class DogbreedDataModule(L.LightningDataModule):
         return DataLoader(
             self.test_dataset,
             batch_size=self.batch_size,
-            shuffle=False,  # Do not shuffle test data
+            shuffle=False,
             num_workers=self.num_workers,
         )
 
 
 if __name__ == "__main__":
-    dataset_df = input_dataprep(settings)
-    dogbreed_datamodule = DogbreedDataModule(dataset_df)
+    dataset_df = input_dataprep()
+    dogbreed_datamodule = DogbreedDataModule(
+        dataset_df, train_split=0.7, val_split=0.2, test_split=0.1, img_size=224
+    )
     dogbreed_datamodule.setup()
     train_loader = dogbreed_datamodule.train_dataloader()
     val_loader = dogbreed_datamodule.val_dataloader()
