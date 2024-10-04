@@ -1,0 +1,2 @@
+name: MNIST
+batch_size: 32

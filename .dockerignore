@@ -12,3 +12,4 @@ data/
 logs/
 model_output/
 checkpoints/
+multirun/

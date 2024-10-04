@@ -174,3 +174,4 @@ bin
 checkpoints/
 artifacts/
 model_output/
+multirun/

@@ -1,0 +1,6 @@
+defaults:
+  - db: mysql
+  - schema: warehouse
+  - _self_
+
+# to use multiple options together, use the following syntax : python app.py --multirun db=mysql,postgresql schema=warehouse,support,school

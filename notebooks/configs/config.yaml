@@ -1,0 +1,5 @@
+# use ++/ to make changes to the existing config from runtime and use + to add new keys
+db: 
+  driver: mysql
+  user: omry
+  password: secret

@@ -1,0 +1,9 @@
+# If you want your primary config to override the values of configs from the Defaults List, append _self_ to the end of the Defaults List.
+# If you want the configs from the Defaults List to override the values in your primary config, insert _self_ as the first item in your Defaults List.
+defaults:
+  - db: mysql
+  - _self_
+
+db:
+  user: root
+  
