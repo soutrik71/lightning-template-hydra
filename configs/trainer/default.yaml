@@ -15,3 +15,4 @@ deterministic: True
 
 # Log every N steps in training and validation
 log_every_n_steps: 10
+fast_dev_run: False
