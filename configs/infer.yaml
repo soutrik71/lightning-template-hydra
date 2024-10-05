@@ -1,0 +1,17 @@
+# @package _global_
+
+# specify here default configuration
+# order of defaults determines the order in which configs override each other
+defaults:
+  - _self_
+  - data: dogbreed
+  - model: dogbreed_classifier
+  - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - paths: default
+  - hydra: default
+
+# task name, determines output directory path
+task_name: "infer"
+
+# checkoint path to load model from
+ckpt_path: ${paths.ckpt_dir}/best-checkpoint.ckpt

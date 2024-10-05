@@ -49,6 +49,7 @@ class DogbreedClassifier(L.LightningModule):
         # Initialize accuracy metrics for multi-class classification
         self.train_acc = Accuracy(task="multiclass", num_classes=num_classes)
         self.val_acc = Accuracy(task="multiclass", num_classes=num_classes)
+        self.test_acc = Accuracy(task="multiclass", num_classes=num_classes)
 
         # Save hyperparameters for logging and checkpointing
         self.save_hyperparameters()
@@ -93,10 +94,10 @@ class DogbreedClassifier(L.LightningModule):
         loss = F.cross_entropy(logits, y)
 
         # Use logits to compute accuracy
-        self.val_acc(logits, y)
+        self.test_acc(logits, y)
 
         self.log("test_loss", loss, prog_bar=True)
-        self.log("test_acc", self.val_acc, prog_bar=True, on_step=False, on_epoch=True)
+        self.log("test_acc", self.test_acc, prog_bar=True, on_step=False, on_epoch=True)
 
     def configure_optimizers(self):
         # Optimizer
@@ -114,9 +115,11 @@ class DogbreedClassifier(L.LightningModule):
         )
         return {
             "optimizer": optimizer,
-            "lr_scheduler": scheduler,
-            "monitor": "val_loss",
-            "interval": "epoch",
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "monitor": "val_loss",
+                "interval": "epoch",
+            },
         }
 
 

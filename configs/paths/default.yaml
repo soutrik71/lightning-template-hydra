@@ -9,6 +9,18 @@ data_dir: ${paths.root_dir}/data/
 # path to logging directory
 log_dir: ${paths.root_dir}/logs/
 
+# path to checkpoint directory
+ckpt_dir: ${paths.root_dir}/checkpoints/
+
+# path to artifact directory
+artifact_dir: ${paths.root_dir}/artifacts/
+
+# kaggle dataset directory
+kaggle_dir: "khushikhushikhushi/dog-breed-image-dataset"
+# kaggle username and key
+kaggle_username: $(oc.env:KAGGLE_USERNAME)
+kaggle_key: $(oc.env:KAGGLE_KEY)
+
 # path to output directory, created dynamically by hydra
 # path generation pattern is specified in `configs/hydra/default.yaml`
 # use it to store all files generated during the run, like ckpts and metrics

@@ -1,10 +1,9 @@
-model:
-  _target_: src.models.dogbreed_classifier.DogbreedClassifier
-  num_classes: 10            # Number of dog breed classes
-  model_name: resnet18        # Model architecture (default: resnet18)
-  lr: 0.001                   # Learning rate
-  weight_decay: 1e-5          # Weight decay
-  scheduler_factor: 0.1       # Scheduler factor
-  scheduler_patience: 10      # Scheduler patience (epochs)
-  min_lr: 1e-6                # Minimum learning rate
-  pretrained: true            # Whether to use a pre-trained model
+_target_: src.models.dogbreed_classifier.DogbreedClassifier
+num_classes: 10            # Number of dog breed classes
+model_name: resnet18        # Model architecture (default: resnet18)
+lr: 0.001                   # Learning rate
+weight_decay: 1e-6         # Weight decay
+scheduler_factor: 0.1       # Scheduler factor
+scheduler_patience: 2     # Scheduler patience (epochs)
+min_lr: 1e-6                # Minimum learning rate
+pretrained: true            # Whether to use a pre-trained model
