@@ -54,17 +54,22 @@ jobs:
         run: |
           poetry install
 
-      # Step 6: Set environment variables from GitHub Secrets
-      - name: Set environment variables
+      # Step 6: Set environment variables from GitHub Secrets and write to .env
+      - name: Create .env file
         run: |
-          echo "KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }}" >> $GITHUB_ENV
-          echo "KAGGLE_KEY=${{ secrets.KAGGLE_KEY }}" >> $GITHUB_ENV
+          echo "KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }}" >> .env
+          echo "KAGGLE_KEY=${{ secrets.KAGGLE_KEY }}" >> .env
+          echo ".env file created"
+        working-directory: pytorch_project
 
       # Step 7: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
         run: |
           source pytorch_project/.venv/bin/activate  # Activate the virtual environment
           pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Run tests with coverage
+        env:  # Load .env file into environment
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
       # Step 8: Upload the coverage XML report as an artifact
       - name: Upload coverage report
