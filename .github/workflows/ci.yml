@@ -20,22 +20,24 @@ jobs:
         python-version: [3.10.14]
 
     steps:
+      # Step 1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Step 2: Set up Python environment with the specified version
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Install Poetry and set virtualenv to be created inside the project directory
+      # Step 3: Install Poetry and set virtualenv to be created inside the project directory
       - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-          poetry config virtualenvs.in-project true  # Ensures the virtual environment is created in the project directory
+          poetry config virtualenvs.in-project true  # Ensure the virtual environment is created in the project directory
 
-      # Cache Poetry dependencies
+      # Step 4: Cache Poetry dependencies
       - name: Cache Poetry dependencies
         uses: actions/cache@v3
         with:
@@ -46,32 +48,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-
 
-      # Install dependencies with Poetry
+      # Step 5: Install dependencies with Poetry
       - name: Install dependencies
         working-directory: pytorch_project
         run: |
           poetry install
 
-      # Activate the Poetry environment globally and run tests
+      # Step 6: Set environment variables from GitHub Secrets
+      - name: Set environment variables
+        run: |
+          echo "KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }}" >> $GITHUB_ENV
+          echo "KAGGLE_KEY=${{ secrets.KAGGLE_KEY }}" >> $GITHUB_ENV
+
+      # Step 7: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
         run: |
           source pytorch_project/.venv/bin/activate  # Activate the virtual environment
           pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Run tests with coverage
 
-      # Upload the coverage XML report as an artifact
+      # Step 8: Upload the coverage XML report as an artifact
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
           path: coverage.xml  # Path where pytest saves coverage.xml
 
-      # Run lint check at the root level
+      # Step 9: Run lint checks at the root level
       - name: Run lint checks
         run: |
           source pytorch_project/.venv/bin/activate  # Activate virtual environment for linting
-          flake8 .
+          poetry run flake8 .
 
-      # Check Poetry environment
+      # Step 10: Check Poetry environment
       - name: Check Poetry environment
         run: |
           source pytorch_project/.venv/bin/activate  # Activate virtual environment for Poetry check
