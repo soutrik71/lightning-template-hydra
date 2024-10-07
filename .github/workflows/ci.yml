@@ -18,7 +18,7 @@ jobs:
     # Strategy to test against different Python versions
     strategy:
       matrix:
-        python-version: [3.10]
+        python-version: [3.10.14]
 
     steps:
       # Step 1: Checkout the repository code
