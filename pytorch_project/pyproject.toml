@@ -26,6 +26,8 @@ torchvision = {version = "^0.19.1+cpu", source = "pytorch_cpu"}
 seaborn = "^0.13.2"
 pydantic = "^2.9.2"
 kaggle = "^1.6.17"
+pytest-cov = "^5.0.0"
+pytest-mock = "^3.14.0"
 
 [[tool.poetry.source]]
 name = "pytorch_cpu"

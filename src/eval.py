@@ -119,7 +119,7 @@ def test(
     logger.info(f"Test metrics:\n{test_metrics}")
 
 
-@hydra.main(config_path="../configs", config_name="train", version_base="1.1")
+@hydra.main(config_path="../configs", config_name="eval", version_base="1.1")
 def setup_run_trainer(cfg: DictConfig):
     """Set up and run the Trainer for training and testing the model."""
     # Initialize logger

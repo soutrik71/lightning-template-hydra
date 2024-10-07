@@ -28,6 +28,12 @@ WORKDIR /app
 # Copy application source code
 COPY src /app/src
 
+# copy project configs
+COPY configs /app/configs
+
+# copy the .project-root file
+COPY .project-root /app/.project-root
+
 # Copy hello.py
 COPY hello.py /app/hello.py
 

@@ -21,7 +21,10 @@ defaults:
   - debug: null
 
 # task name, determines output directory path
-task_name: "train"
+task_name: "eval"
+
+# checkoint path to load model from
+ckpt_path: ${paths.ckpt_dir}/best-checkpoint.ckpt
 
 # tags to help you identify your experiments
 # you can overwrite this in experiment configs
@@ -29,14 +32,11 @@ task_name: "train"
 tags: ["dev"]
 
 # set False to skip model training
-train: True
+train: False
 
 # evaluate on test set, using best model weights achieved during training
 # lightning chooses best weights based on the metric specified in checkpoint callback
-test: False
-
-# simply provide checkpoint path to resume training
-ckpt_path: null
+test: True
 
 # seed for random number generators in pytorch, numpy and python.random
 seed: 42

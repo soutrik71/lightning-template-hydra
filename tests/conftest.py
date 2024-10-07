@@ -2,7 +2,7 @@ import sys
 import os
 import pytest
 from omegaconf import OmegaConf
-
+import hydra
 import rootutils
 
 # Setup root directory to project root and add src/ to the Python path
@@ -13,21 +13,22 @@ from src.datamodules.dogbreed_datamodule import DogbreedDataModule, input_datapr
 
 @pytest.fixture(scope="session")
 def config():
-    """Load the configuration from the train.yaml file, once per test session."""
+    """Load the configuration from the test.yaml file, once per test session."""
     # Set the absolute path to the configuration file
-    config_path = os.path.abspath(os.path.join(root, "configs/test.yaml"))
+    config_path = os.path.abspath(os.path.join(root, "configs"))
 
-    # Load configuration using OmegaConf
-    config = OmegaConf.load(config_path)
+    # Initialize Hydra and compose configurations from test.yaml and its defaults
+    with hydra.initialize_config_dir(config_dir=config_path):
+        cfg = hydra.compose(config_name="test")
 
-    # Debugging: Print the config to verify
-    print(OmegaConf.to_yaml(config))
+    # Debugging: Print the merged config to verify
+    print(OmegaConf.to_yaml(cfg))
 
-    # Ensure that the paths key exists
-    if "defaults" not in config:
-        raise KeyError("Missing key 'paths' in config file")
+    # Ensure that the model key exists
+    if "model" not in cfg:
+        raise KeyError("Missing key 'model' in config file")
 
-    return config
+    return cfg
 
 
 @pytest.fixture(scope="session")
