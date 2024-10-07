@@ -15,29 +15,24 @@ jobs:
     name: Test on Python code
     runs-on: ubuntu-latest
 
-    # Strategy to test against different Python versions
     strategy:
       matrix:
-        python-version: [3.10.14]
+        python-version: [3.10]
 
     steps:
-      # Step 1: Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python environment with the specified version
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Step 3: Install Poetry
       - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
           pip install poetry
 
-      # Step 4: Cache Poetry dependencies (optional)
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -48,26 +43,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-poetry-
 
-      # Step 5: Navigate to the pytorch_project directory and install dependencies
       - name: Install dependencies
-        working-directory: pytorch_project
+        working-directory: pytorch_project  # Install dependencies inside pytorch_project
         run: |
           poetry install
 
-      # Step 6: Run tests with verbose pytest output
-      - name: Run tests
-        working-directory: pytorch_project  # Run the tests in the pytorch_project directory
+      # **Run tests in the root directory (where the tests folder is located)**
+      - name: Run tests with verbose output
         run: |
           poetry run pytest -v
 
-      # Step 7: Run linting checks with flake8 (optional)
+      # **Run lint check at the root level**
       - name: Run lint checks
-        working-directory: pytorch_project  # Run linting in the pytorch_project directory
         run: |
           poetry run flake8 .
 
-      # Step 8: Check if Poetry environment is up and active
+      # **Check Poetry environment at the root level**
       - name: Check Poetry environment
-        working-directory: pytorch_project
         run: |
           poetry env info
