@@ -25,6 +25,13 @@ def download_data_kaggle(cfg: DictConfig):
     kaggle_zip = Path(f"{cfg.paths.kaggle_dir.split('/')[-1]}.zip")
     data_dir = Path(cfg.paths.data_dir)
 
+    # Check if Kaggle credentials are set
+    if not os.getenv("KAGGLE_USERNAME") or not os.getenv("KAGGLE_KEY"):
+        logger.error(
+            "Kaggle credentials not found. Please set KAGGLE_USERNAME and KAGGLE_KEY in environment."
+        )
+        raise EnvironmentError("Kaggle credentials are missing.")
+
     if not kaggle_zip.exists():
         logger.info("Downloading the dataset from Kaggle")
         kaggle.api.dataset_download_files(cfg.paths.kaggle_dir, path="./", unzip=False)
@@ -51,6 +58,10 @@ def input_dataprep(cfg: DictConfig) -> pd.DataFrame:
         Path(cfg.paths.data_dir) / cfg.paths.kaggle_dir.split("/")[-1] / "dataset"
     )
     image_paths = list(dataset_path.glob("*/*.jpg"))
+
+    if len(image_paths) == 0:
+        logger.error(f"No images found in dataset directory: {dataset_path}")
+        raise FileNotFoundError(f"No images found at {dataset_path}")
 
     logger.info(f"Total Images: {len(image_paths)}")
 

@@ -62,29 +62,41 @@ jobs:
           echo ".env file created"
         working-directory: pytorch_project
 
-      # Step 7: Activate the Poetry environment and run tests with coverage
+      # Step 7: Source and echo environment variables from the .env file (for debugging)
+      - name: Echo environment variables from .env
+        run: |
+          set -o allexport
+          source .env
+          set +o allexport
+          echo "KAGGLE_USERNAME: $KAGGLE_USERNAME"
+          echo "KAGGLE_KEY: $KAGGLE_KEY"
+        working-directory: pytorch_project
+
+      # Step 8: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
         run: |
           source pytorch_project/.venv/bin/activate  # Activate the virtual environment
           pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Run tests with coverage
-        env:  # Load .env file into environment
+        working-directory: pytorch_project
+        env:  # Ensure environment variables are loaded
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
-      # Step 8: Upload the coverage XML report as an artifact
+      # Step 9: Upload the coverage XML report as an artifact
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: coverage.xml  # Path where pytest saves coverage.xml
+          path: pytorch_project/coverage.xml  # Ensure correct path to the coverage.xml file
 
-      # Step 9: Run lint checks at the root level
+      # Step 10: Run lint checks at the root level
       - name: Run lint checks
         run: |
           source pytorch_project/.venv/bin/activate  # Activate virtual environment for linting
           poetry run flake8 .
+        working-directory: pytorch_project
 
-      # Step 10: Check Poetry environment
+      # Step 11: Check Poetry environment
       - name: Check Poetry environment
         run: |
           source pytorch_project/.venv/bin/activate  # Activate virtual environment for Poetry check
