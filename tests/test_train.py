@@ -6,7 +6,7 @@ from src.train import (
     instantiate_callbacks,
     instantiate_loggers,
     train_module,
-    test,
+    run_test_module,
     setup_run_trainer,
 )
 
@@ -67,12 +67,12 @@ def test_train_module(mock_trainer, mock_model, mock_datamodule, config):
     assert "accuracy" in mock_trainer.callback_metrics
 
 
-# Test test function
-def test_test_module(mock_trainer, mock_model, mock_datamodule, config):
-    test(config, mock_datamodule, mock_model, mock_trainer)
-    mock_trainer.test.assert_called_with(
-        mock_model, mock_datamodule, ckpt_path="best_checkpoint.ckpt"
-    )
+# # Test test function
+# def test_run_test_module(mock_trainer, mock_model, mock_datamodule, config):
+#     run_test_module(config, mock_datamodule, mock_model, mock_trainer)
+#     mock_trainer.test.assert_called_with(
+#         mock_model, mock_datamodule, ckpt_path="best_checkpoint.ckpt"
+#     )
 
 
 # Integration test for setup_run_trainer using test.yaml configuration

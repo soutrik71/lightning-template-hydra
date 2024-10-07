@@ -102,7 +102,7 @@ def train_module(
 
 
 @task_wrapper
-def test(
+def run_test_module(
     cfg: DictConfig,
     datamodule: L.LightningDataModule,
     model: L.LightningModule,
@@ -170,7 +170,7 @@ def setup_run_trainer(cfg: DictConfig):
 
     if cfg.get("test"):
         logger.info("Testing the model")
-        test(cfg, dogbreed_datamodule, model, trainer)
+        run_test_module(cfg, dogbreed_datamodule, model, trainer)
 
     # Write training done flag using Hydra paths config
     done_flag_path = Path(cfg.paths.ckpt_dir) / "train_done.flag"
