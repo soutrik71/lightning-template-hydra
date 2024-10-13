@@ -54,9 +54,7 @@ def input_dataprep(cfg: DictConfig) -> pd.DataFrame:
     """Prepare the input data by downloading and processing the dataset."""
     download_data_kaggle(cfg)
 
-    dataset_path = (
-        Path(cfg.paths.data_dir) / cfg.paths.kaggle_dir.split("/")[-1] / "dataset"
-    )
+    dataset_path = Path(cfg.paths.data_dir) / "dataset"
     image_paths = list(dataset_path.glob("*/*.jpg"))
 
     if len(image_paths) == 0:
