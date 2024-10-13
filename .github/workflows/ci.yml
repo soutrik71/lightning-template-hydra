@@ -11,7 +11,7 @@ on:
       - feat/*
 
 jobs:
-  test:
+  python_basic_test:
     name: Test on Python code
     runs-on: ubuntu-latest
 
@@ -54,7 +54,14 @@ jobs:
         run: |
           poetry install
 
-      # Step 6: Set environment variables from GitHub Secrets and write to .env
+       # Step 6: Check Poetry environment
+      - name: Check Poetry environment
+        working-directory: pytorch_project
+        run: |
+          source .venv/bin/activate 
+          poetry env info
+
+      # Step 7: Set environment variables from GitHub Secrets and write to .env
       - name: Create .env file
         run: |
           echo "KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }}" >> .env
@@ -62,7 +69,7 @@ jobs:
           echo ".env file created"
         working-directory: pytorch_project
 
-      # Step 7: Activate the Poetry environment and run tests with coverage
+      # Step 8: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
         run: |
           source pytorch_project/.venv/bin/activate  # Activate the virtual environment
@@ -71,22 +78,22 @@ jobs:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
-      # Step 8: Upload the coverage XML report as an artifact
+      # Step 9: Upload the coverage XML report as an artifact
       - name: Upload coverage report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml  # Path where pytest saves coverage.xml
 
-      # Step 9: Run lint checks at the root level
+      # Step 10: Run lint checks at the root level
       - name: Run lint checks
         run: |
           source pytorch_project/.venv/bin/activate
           flake8 .
-          
-      # Step 10: Check Poetry environment
-      - name: Check Poetry environment
-        working-directory: pytorch_project
-        run: |
-          source .venv/bin/activate 
-          poetry env info
+
+      # Step 11: Run mypy checks at the root level
+      - name: download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
