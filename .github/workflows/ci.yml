@@ -80,11 +80,10 @@ jobs:
 
       # Step 9: Run lint checks at the root level
       - name: Run lint checks
-        working-directory: pytorch_project
         run: |
-          source .venv/bin/activate
-          poetry run flake8 .
-
+          source pytorch_project/.venv/bin/activate
+          flake8 .
+          
       # Step 10: Check Poetry environment
       - name: Check Poetry environment
         working-directory: pytorch_project
