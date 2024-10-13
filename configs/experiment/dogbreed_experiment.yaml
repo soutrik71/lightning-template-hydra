@@ -33,7 +33,7 @@ model:
   min_lr: 1e-6
 
 trainer:
-  max_epochs: 1
+  max_epochs: 6
 
 callbacks:
   model_checkpoint:
