@@ -64,7 +64,6 @@ jobs:
 
       # Step 7: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
-        working-directory: pytorch_project  # Ensure the working directory is set properly
         run: |
           poetry run pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Use poetry run for test execution
         env:  # Load .env file into environment
