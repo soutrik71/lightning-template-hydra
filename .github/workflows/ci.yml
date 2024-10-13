@@ -182,7 +182,7 @@ jobs:
           fi
 
           # Check if accuracy is less than 95%
-          if [ $accuracy -lt 0.2 ]; then
+          if [ $accuracy -lt 0.95 ]; then
             echo "Train accuracy ($accuracy%) is below 95%. Failing the build."
             exit 1
           else
@@ -208,6 +208,7 @@ jobs:
           path: ./configs/
 
   build-and-push-image:
+    name: Build and push Docker image
     needs: pytorch_code_test
     runs-on: ubuntu-latest
     permissions:
