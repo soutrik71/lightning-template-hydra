@@ -72,8 +72,8 @@ jobs:
       # Step 8: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
         run: |
-          source pytorch_project/.venv/bin/activate  # Activate the virtual environment
-          pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Run tests with coverage
+          source pytorch_project/.venv/bin/activate 
+          pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
@@ -148,3 +148,31 @@ jobs:
         run: |
           source .venv/bin/activate 
           poetry env info
+      - name: Run Train code
+        run: |
+          source pytorch_project/.venv/bin/activate 
+          python -m src.train
+        env:  # Load .env file into environment
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+
+      - name: Check validation accuracy
+        working-directory: pytorch_project  # Ensure correct working directory
+        run: |
+          if [ ! -f logs/train.log ]; then
+            echo "Log file not found. Failing the build."
+            exit 1
+          fi
+          
+          accuracy=$(grep -oP 'Validation Accuracy: \K[0-9]+(\.[0-9]+)?' logs/train.log)
+          accuracy_int=$(echo "$accuracy" | awk '{print int($1)}')
+      
+          # Check if accuracy is less than 95%
+          if [ $accuracy_int -lt 95 ]; then
+            echo "Validation accuracy ($accuracy%) is below 95%. Failing the build."
+            exit 1
+          else
+            echo "Validation accuracy ($accuracy%) is sufficient. Proceeding with the build."
+          fi
+
+      
