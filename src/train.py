@@ -98,7 +98,10 @@ def train_module(
     logger.info("Training the model")
     trainer.fit(model, data_module)
     train_metrics = trainer.callback_metrics
-    logger.info(f"Training metrics:\n{train_metrics}")
+
+    logger.info(
+        f"Training completed with the following metrics: train_acc: {train_metrics['train_acc'].item()} and val_acc: {train_metrics['val_acc'].item()}"
+    )
 
 
 @task_wrapper

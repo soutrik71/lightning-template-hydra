@@ -7,7 +7,6 @@ import pandas as pd
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, random_split
 from loguru import logger
-import kaggle
 import hydra
 from omegaconf import DictConfig
 from dotenv import load_dotenv, find_dotenv
@@ -15,6 +14,8 @@ import rootutils
 
 # Load environment variables
 load_dotenv(find_dotenv(".env"))
+
+import kaggle
 
 # Setup root directory
 root = rootutils.setup_root(__file__, indicator=".project-root")

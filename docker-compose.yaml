@@ -10,27 +10,29 @@ services:
       - data:/app/data
       - checkpoints:/app/checkpoints
       - artifacts:/app/artifacts
-    shm_size: '4g'  # Shared memory size for large datasets
+      - logs:/app/logs
+    shm_size: '4g' 
     networks:
       - default
     env_file:
-      - .env  # Load environment variables
+      - .env 
 
   eval:
     build:
       context: .
     command: |
-      /bin/bash -c "while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 10; done;
+      /bin/bash -c "while [ ! -f /checkpoints/train_done.flag ]; do sleep 10; done;
       python -m src.eval"
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints
       - artifacts:/app/artifacts
+      - logs:/app/logs
     shm_size: '4g'
     networks:
       - default
     depends_on:
-      - train  # Ensure train runs before eval
+      - train
     env_file:
       - .env  
 
@@ -38,17 +40,18 @@ services:
     build:
       context: .
     command: |
-      /bin/bash -c "while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 10; done;
+      /bin/bash -c "while [ ! -f /checkpoints/train_done.flag ]; do sleep 10; done;
       python -m src.infer"
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints
       - artifacts:/app/artifacts
+      - logs:/app/logs
     shm_size: '4g'
     networks:
       - default
     depends_on:
-      - train  # Ensure train runs before inference
+      - train
     env_file:
       - .env  
 
@@ -56,6 +59,7 @@ volumes:
   data:
   checkpoints:
   artifacts:
+  logs:
 
 networks:
   default:

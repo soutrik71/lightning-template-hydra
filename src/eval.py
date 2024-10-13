@@ -172,11 +172,11 @@ def setup_run_trainer(cfg: DictConfig):
         logger.info("Testing the model")
         run_test_module(cfg, dogbreed_datamodule, model, trainer)
 
-    # Write training done flag using Hydra paths config
-    done_flag_path = Path(cfg.paths.ckpt_dir) / "train_done.flag"
-    with done_flag_path.open("w") as f:
-        f.write("Training completed.\n")
-    logger.info(f"Training completion flag written to: {done_flag_path}")
+    # # Write training done flag using Hydra paths config
+    # done_flag_path = Path(cfg.paths.ckpt_dir) / "train_done.flag"
+    # with done_flag_path.open("w") as f:
+    #     f.write("Training completed.\n")
+    # logger.info(f"Training completion flag written to: {done_flag_path}")
 
 
 if __name__ == "__main__":

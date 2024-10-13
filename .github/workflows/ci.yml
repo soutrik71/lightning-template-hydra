@@ -12,7 +12,7 @@ on:
 
 jobs:
   python_basic_test:
-    name: Test on Python code
+    name: Test Python code and setup
     runs-on: ubuntu-latest
 
     strategy:
@@ -78,13 +78,6 @@ jobs:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
-      # Step 9: Upload the coverage XML report as an artifact
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml  # Path where pytest saves coverage.xml
-
       # Step 10: Run lint checks at the root level
       - name: Run lint checks
         run: |
@@ -97,3 +90,55 @@ jobs:
         with:
           name: coverage-report
           path: ./coverage.xml
+
+  pytorch_run:
+    name: Run PyTorch pipeline
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.10.14]
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python environment with the specified version
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Step 3: Install Poetry and set virtualenv to be created inside the project directory
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.in-project true  # Ensure the virtual environment is created in the project directory
+
+      # Step 4: Cache Poetry dependencies
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            pytorch_project/.venv  # Cache the virtual environment in the project directory
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pytorch_project/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      # Step 5: Install dependencies with Poetry
+      - name: Install dependencies
+        working-directory: pytorch_project
+        run: |
+          poetry install
+
+       # Step 6: Check Poetry environment
+      - name: Check Poetry environment
+        working-directory: pytorch_project
+        run: |
+          source .venv/bin/activate 
+          poetry env info
+
+
