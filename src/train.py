@@ -100,7 +100,7 @@ def train_module(
     train_metrics = trainer.callback_metrics
     try:
         logger.info(
-            f"Training completed with the following metrics:{train_metrics['train_acc'].item()} and val_acc: {train_metrics['val_acc'].item()}"
+            f"Training completed with the following metrics- train_acc: {train_metrics['train_acc'].item()} and val_acc: {train_metrics['val_acc'].item()}"
         )
     except KeyError:
         logger.info(f"Training completed with the following metrics:{train_metrics}")
