@@ -64,9 +64,9 @@ jobs:
 
       # Step 7: Activate the Poetry environment and run tests with coverage
       - name: Run tests with coverage
+        working-directory: pytorch_project  # Ensure the working directory is set properly
         run: |
-          source pytorch_project/.venv/bin/activate  # Activate the virtual environment
-          pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Run tests with coverage
+          poetry run pytest --cov=pytorch_project --cov-report=xml --cov-report=term -v  # Use poetry run for test execution
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
@@ -76,16 +76,16 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
-          path: coverage.xml  # Path where pytest saves coverage.xml
+          path: pytorch_project/coverage.xml  # Ensure the correct path to coverage.xml
 
       # Step 9: Run lint checks at the root level
       - name: Run lint checks
+        working-directory: pytorch_project  # Set working directory to ensure pyproject.toml is found
         run: |
-          source pytorch_project/.venv/bin/activate  # Activate virtual environment for linting
-          poetry run flake8 .
+          poetry run flake8 .  # Use poetry run for running flake8
 
       # Step 10: Check Poetry environment
       - name: Check Poetry environment
+        working-directory: pytorch_project  # Set working directory
         run: |
-          source pytorch_project/.venv/bin/activate  # Activate virtual environment for Poetry check
           poetry env info
