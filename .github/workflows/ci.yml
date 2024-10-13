@@ -160,18 +160,24 @@ jobs:
       - name: Check validation accuracy
         run: |
           LOG_FILE_PATH="/home/runner/work/lightning-template-hydra/lightning-template-hydra/logs/train.log"
+          
           if [ ! -f $LOG_FILE_PATH ]; then
             echo "Log file not found. Failing the build."
             exit 1
           else
             echo "Log file found. Proceeding with the build."
           fi
-          # check if train_acc is present in the log file
+
+          # Extract train accuracy from the log file
           accuracy=$(grep -oP 'train_acc: \K[0-9]+(\.[0-9]+)?' $LOG_FILE_PATH)
+          
           if [ -z "$accuracy" ]; then
             echo "Train accuracy not found in the log file. Failing the build."
             exit 1
           fi
+
+          # Convert accuracy to integer for comparison
+          accuracy_int=$(echo "$accuracy" | awk '{print int($1)}')
 
           # Check if accuracy is less than 95%
           if [ $accuracy_int -lt 95 ]; then
@@ -180,6 +186,4 @@ jobs:
           else
             echo "Train accuracy ($accuracy%) is sufficient. Proceeding with the build."
           fi
-    
-
       
