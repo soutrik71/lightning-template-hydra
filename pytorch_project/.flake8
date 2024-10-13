@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 88
+
+# Exclude the virtual environment and other unnecessary directories
+exclude = 
+    .venv,  # Exclude the virtual environment directory
+    __pycache__,
+    .git,
+    build,
+    dist
+
+ignore = 
+    E203,  # Whitespace before ':' (conflict with Black)
+    W503   # Line break occurred before a binary operator
+
+max-complexity = 10
+show-source = True
