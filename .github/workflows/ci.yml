@@ -159,7 +159,7 @@ jobs:
       # Step 8: Check if the training accuracy is above a certain threshold
       - name: Check validation accuracy
         run: |
-          LOG_FILE_PATH="/logs/train.log"
+          LOG_FILE_PATH="/home/runner/work/lightning-template-hydra/lightning-template-hydra/logs/train.log"
           if [ ! -f $LOG_FILE_PATH ]; then
             echo "Log file not found. Failing the build."
             exit 1
