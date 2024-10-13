@@ -12,7 +12,7 @@ on:
 
 jobs:
   python_basic_test:
-    name: Test Python code and setup
+    name: Test current codebase and setup Python environment
     runs-on: ubuntu-latest
 
     strategy:
@@ -54,7 +54,7 @@ jobs:
         run: |
           poetry install
 
-       # Step 6: Check Poetry environment
+      # Step 6: Check Poetry environment
       - name: Check Poetry environment
         working-directory: pytorch_project
         run: |
@@ -78,6 +78,13 @@ jobs:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
+      # Step 9: Upload the coverage XML report as an artifact
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml  # Path where pytest saves coverage.xml
+
       # Step 10: Run lint checks at the root level
       - name: Run lint checks
         run: |
@@ -89,11 +96,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-report
-          path: ./coverage.xml
 
-  pytorch_run:
-    name: Run PyTorch pipeline
+  pytorch_code_test:
+    name: Test PyTorch code
     runs-on: ubuntu-latest
+
+    needs: python_basic_test  # This ensures pytorch_code_test runs only after python_basic_test completes successfully
 
     strategy:
       matrix:
@@ -134,11 +142,9 @@ jobs:
         run: |
           poetry install
 
-       # Step 6: Check Poetry environment
+      # Step 6: Check Poetry environment
       - name: Check Poetry environment
         working-directory: pytorch_project
         run: |
           source .venv/bin/activate 
           poetry env info
-
-
