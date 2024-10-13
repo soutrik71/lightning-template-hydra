@@ -186,4 +186,21 @@ jobs:
           else
             echo "Train accuracy ($accuracy%) is sufficient. Proceeding with the build."
           fi
-      
+      # Step 9: Upload the model checkpoints, logs, and configs as artifacts
+      - name: upload model checkpoints
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-checkpoints
+          path: ./model_checkpoints/
+
+      - name: upload logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: ./logs/
+
+      - name: upload configs
+        uses: actions/upload-artifact@v4
+        with:
+          name: configs
+          path: ./configs/
