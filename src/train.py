@@ -127,9 +127,29 @@ def run_test_module(
 @hydra.main(config_path="../configs", config_name="train", version_base="1.1")
 def setup_run_trainer(cfg: DictConfig):
     """Set up and run the Trainer for training and testing the model."""
+
     # Initialize logger
     log_path = Path(cfg.paths.log_dir) / "train.log"
     setup_logger(log_path)
+
+    # the path to the checkpoint directory
+    root_dir = cfg.paths.root_dir
+    logger.info(f"Root directory: {root_dir}")
+
+    ckpt_dir = cfg.paths.ckpt_dir
+    logger.info(f"Checkpoint directory: {ckpt_dir}")
+
+    # the path to the data directory
+    data_dir = cfg.paths.data_dir
+    logger.info(f"Data directory: {data_dir}")
+
+    # the path to the log directory
+    log_dir = cfg.paths.log_dir
+    logger.info(f"Log directory: {log_dir}")
+
+    # the path to the artifact directory
+    artifact_dir = cfg.paths.artifact_dir
+    logger.info(f"Artifact directory: {artifact_dir}")
 
     # Initialize DataModule
     logger.info("Setting up the DataModule")

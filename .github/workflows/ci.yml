@@ -148,6 +148,7 @@ jobs:
         run: |
           source .venv/bin/activate 
           poetry env info
+      # Step 7: Run the model training code
       - name: Run Train code
         run: |
           source pytorch_project/.venv/bin/activate 
@@ -155,24 +156,25 @@ jobs:
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
-
+      # Step 8: Check if the training accuracy is above a certain threshold
       - name: Check validation accuracy
-        working-directory: pytorch_project  # Ensure correct working directory
         run: |
-          if [ ! -f logs/train.log ]; then
+          LOG_FILE_PATH="/home/runner/work/${{ github.repository }}/${{ github.repository }}/logs/train.log"
+          if [ ! -f $LOG_FILE_PATH ]; then
             echo "Log file not found. Failing the build."
             exit 1
           fi
-          
-          accuracy=$(grep -oP 'Validation Accuracy: \K[0-9]+(\.[0-9]+)?' logs/train.log)
+          # check if train_acc is present in the log file
+          accuracy=$(grep -oP 'train_acc: \K[0-9]+(\.[0-9]+)?' $LOG_FILE_PATH)
           accuracy_int=$(echo "$accuracy" | awk '{print int($1)}')
-      
+
           # Check if accuracy is less than 95%
           if [ $accuracy_int -lt 95 ]; then
-            echo "Validation accuracy ($accuracy%) is below 95%. Failing the build."
+            echo "Train accuracy ($accuracy%) is below 95%. Failing the build."
             exit 1
           else
-            echo "Validation accuracy ($accuracy%) is sufficient. Proceeding with the build."
+            echo "Train accuracy ($accuracy%) is sufficient. Proceeding with the build."
           fi
+    
 
       
