@@ -82,12 +82,12 @@ jobs:
       - name: Run lint checks
         working-directory: pytorch_project
         run: |
-          source /.venv/bin/activate
+          source .venv/bin/activate
           poetry run flake8 .
 
       # Step 10: Check Poetry environment
       - name: Check Poetry environment
         working-directory: pytorch_project
         run: |
-          source /.venv/bin/activate 
+          source .venv/bin/activate 
           poetry env info
