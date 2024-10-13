@@ -163,10 +163,15 @@ jobs:
           if [ ! -f $LOG_FILE_PATH ]; then
             echo "Log file not found. Failing the build."
             exit 1
+          else
+            echo "Log file found. Proceeding with the build."
           fi
           # check if train_acc is present in the log file
           accuracy=$(grep -oP 'train_acc: \K[0-9]+(\.[0-9]+)?' $LOG_FILE_PATH)
-          accuracy_int=$(echo "$accuracy" | awk '{print int($1)}')
+          if [ -z "$accuracy" ]; then
+            echo "Train accuracy not found in the log file. Failing the build."
+            exit 1
+          fi
 
           # Check if accuracy is less than 95%
           if [ $accuracy_int -lt 95 ]; then
