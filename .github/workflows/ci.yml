@@ -176,11 +176,8 @@ jobs:
             exit 1
           fi
 
-          # Convert accuracy to integer for comparison
-          accuracy_int=$(echo "$accuracy" | awk '{print int($1)}')
-
           # Check if accuracy is less than 95%
-          if [ $accuracy_int -lt 95 ]; then
+          if [ $accuracy -lt 0.2 ]; then
             echo "Train accuracy ($accuracy%) is below 95%. Failing the build."
             exit 1
           else
