@@ -21,8 +21,7 @@ services:
     build:
       context: .
     command: |
-      /bin/bash -c "while [ ! -f app/checkpoints/train_done.flag ]; do sleep 10; done;
-      python -m src.eval"
+      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.eval'
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints
@@ -40,8 +39,7 @@ services:
     build:
       context: .
     command: |
-      /bin/bash -c "while [ ! -f app/checkpoints/train_done.flag ]; do sleep 10; done;
-      python -m src.infer"
+      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.infer'
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints

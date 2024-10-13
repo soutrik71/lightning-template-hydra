@@ -124,7 +124,7 @@ def setup_run_trainer(cfg: DictConfig):
     """Set up and run the Trainer for training and testing the model."""
 
     # Initialize logger
-    log_path = Path(cfg.paths.log_dir) / "train.log"
+    log_path = Path(cfg.paths.log_dir) / "eval.log"
     setup_logger(log_path)
 
     # the path to the checkpoint directory
