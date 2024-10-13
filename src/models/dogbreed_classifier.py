@@ -1,6 +1,6 @@
 import timm
 import torch.nn.functional as F
-from torch import nn, optim
+from torch import optim
 import lightning as L
 from torchmetrics import Accuracy
 from loguru import logger
