@@ -266,3 +266,10 @@ This setup allows for easy management of multiple services using Docker Compose,
 - <https://medium.com/@albertazzir/blazing-fast-python-docker-builds-with-poetry-a78a66f5aed0>
 - <https://www.martinrichards.me/post/python_poetry_docker/>
 - <https://gist.github.com/soof-golan/6ebb97a792ccd87816c0bda1e6e8b8c2>
+
+8. ## **DVC SETUP**
+
+dvc init
+dvc add data
+dvc remote add -d myremote /tmp/dvcstore
+dvc push
