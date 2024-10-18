@@ -175,3 +175,4 @@ checkpoints/
 artifacts/
 model_output/
 multirun/
+/data
