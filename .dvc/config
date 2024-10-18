@@ -1,9 +1,0 @@
-[core]
-    autostage = true
-    hardlink_lock = true
-    remote = gdrive
-['remote "gdrive"']
-    url = gdrive://1jpIeKAy4gkkqqMJTrDSSgQrnD1K-EgV3
-    gdrive_acknowledge_abuse = true
-    gdrive_client_id = 713404268463-6m2vt68e2b9f8asktj5vb65dniqclcu4.apps.googleusercontent.com
-    gdrive_client_secret = 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
