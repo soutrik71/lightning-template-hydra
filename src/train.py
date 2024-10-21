@@ -11,7 +11,7 @@ from loguru import logger
 from dotenv import load_dotenv, find_dotenv
 import rootutils
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 
 # Load environment variables
@@ -127,7 +127,8 @@ def run_test_module(
 @hydra.main(config_path="../configs", config_name="train", version_base="1.1")
 def setup_run_trainer(cfg: DictConfig):
     """Set up and run the Trainer for training and testing the model."""
-
+    # show me the entire config
+    logger.info(f"Config:\n{OmegaConf.to_yaml(cfg)}")
     # Initialize logger
     log_path = Path(cfg.paths.log_dir) / "train.log"
     setup_logger(log_path)
@@ -151,26 +152,31 @@ def setup_run_trainer(cfg: DictConfig):
     artifact_dir = cfg.paths.artifact_dir
     logger.info(f"Artifact directory: {artifact_dir}")
 
-    # Initialize DataModule
-    logger.info("Setting up the DataModule")
-    dataset_df, dogbreed_datamodule = main_dataloader(cfg)
-    labels = dataset_df.label.nunique()
-    logger.info(f"Number of classes: {labels}")
+    # name of the experiment
+    experiment_name = cfg.name
+    logger.info(f"Experiment name: {experiment_name}")
 
-    os.makedirs(cfg.paths.artifact_dir, exist_ok=True)
-    dataset_df.to_csv(
-        Path(cfg.paths.artifact_dir) / "dogbreed_dataset.csv", index=False
-    )
+    # Initialize DataModule
+    if experiment_name == "dogbreed_experiment":
+        logger.info("Setting up the DataModule")
+        dataset_df, datamodule = main_dataloader(cfg)
+        labels = dataset_df.label.nunique()
+        logger.info(f"Number of classes: {labels}")
+
+        os.makedirs(cfg.paths.artifact_dir, exist_ok=True)
+        dataset_df.to_csv(
+            Path(cfg.paths.artifact_dir) / "dogbreed_dataset.csv", index=False
+        )
+    elif experiment_name == "catdog_experiment":
+        # Initialize DataModule
+        logger.info(f"Instantiating datamodule <{cfg.data._target_}>")
+        datamodule: L.LightningDataModule = hydra.utils.instantiate(cfg.data)
 
     # Check for GPU availability
     logger.info("GPU available" if torch.cuda.is_available() else "No GPU available")
 
     # Set seed for reproducibility
     L.seed_everything(cfg.seed, workers=True)
-
-    # Clear checkpoint directory if training is enabled
-    if cfg.get("train"):
-        clear_checkpoint_directory(cfg.paths.ckpt_dir)
 
     # Initialize model
     logger.info(f"Instantiating model <{cfg.model._target_}>")
@@ -179,6 +185,7 @@ def setup_run_trainer(cfg: DictConfig):
     logger.info(f"Model summary:\n{model}")
 
     # Set up callbacks and loggers
+    logger.info("Setting up callbacks and loggers")
     callbacks: List[L.Callback] = instantiate_callbacks(cfg.get("callbacks"))
     loggers: List[Logger] = instantiate_loggers(cfg.get("logger"))
 
@@ -190,8 +197,12 @@ def setup_run_trainer(cfg: DictConfig):
 
     # Train and test the model based on config settings
     if cfg.get("train"):
+        # clear the checkpoint directory
+        clear_checkpoint_directory(cfg.paths.ckpt_dir)
+
         logger.info("Training the model")
-        train_module(cfg, dogbreed_datamodule, model, trainer)
+        train_module(cfg, datamodule, model, trainer)
+
         # Write training done flag using Hydra paths config
         done_flag_path = Path(cfg.paths.ckpt_dir) / "train_done.flag"
         with done_flag_path.open("w") as f:
@@ -200,7 +211,7 @@ def setup_run_trainer(cfg: DictConfig):
 
     if cfg.get("test"):
         logger.info("Testing the model")
-        run_test_module(cfg, dogbreed_datamodule, model, trainer)
+        run_test_module(cfg, datamodule, model, trainer)
 
 
 if __name__ == "__main__":

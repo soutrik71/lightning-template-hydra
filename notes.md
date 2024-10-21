@@ -323,3 +323,17 @@ dvc remote modify azblob  allow_anonymous_login true
 dvc push -r azblob
 # this works when used and requires no explicit login
 ```
+9. ## __HYDRA SETUP__
+
+```bash
+# Install hydra
+pip install hydra-core hydra_colorlog omegaconf
+# Fillup the configs folder with the files as per the project
+# Run the following command to run the hydra experiment
+# for train 
+python -m src.hydra_test experiment=catdog_experiment ++task_name=train ++train=True ++test=False
+# for eval
+python -m src.hydra_test experiment=catdog_experiment ++task_name=eval ++train=False ++test=True
+# for both
+python -m src.hydra_test experiment=catdog_experiment task_name=train train=True test=True # + means adding new key value pair to the existing config and ++ means overriding the existing key value pair
+```

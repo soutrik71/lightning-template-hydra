@@ -14,6 +14,7 @@ defaults:
 # this allows you to overwrite only specified parameters
 
 seed: 42
+name: "dogbreed_experiment"
 
 data:
   batch_size: 32
