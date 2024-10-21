@@ -1,5 +1,8 @@
 [core]
     autostage = true
-    remote = myremote
+    remote = azblob
 ['remote "myremote"']
     url = /tmp/dvcstore
+['remote "azblob"']
+    url = azure://dvc-data/data
+    allow_anonymous_login = true

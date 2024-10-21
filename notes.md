@@ -1,4 +1,5 @@
 ## __POETRY SETUP__
+
 ```bash
 # Install poetry
 conda create -n poetry_env python=3.10 -y
@@ -35,20 +36,20 @@ If you're new to the project and need to set up Docker and Docker Compose to run
 
 ### 1. Setting Up the Dockerfile
 
-A Dockerfile is a set of instructions that Docker uses to create an image. In this case, we'll use a **multi-stage build** to make the final image lightweight while managing dependencies with `Poetry`.
+A Dockerfile is a set of instructions that Docker uses to create an image. In this case, we'll use a __multi-stage build__ to make the final image lightweight while managing dependencies with `Poetry`.
 
 #### Step-by-Step Process for Creating the Dockerfile
 
-1. **Choose a Base Image**:
+1. __Choose a Base Image__:
    - We need to choose a Python image that matches the project's required version (e.g., Python 3.10.14).
-   - Use the lightweight **`slim`** version to minimize image size.
+   - Use the lightweight __`slim`__ version to minimize image size.
 
    ```Dockerfile
    FROM python:3.10.14-slim as builder
    ```
 
-2. **Install Dependencies in the Build Stage**:
-   - We'll use **Poetry** for dependency management. Install it using `pip`.
+2. __Install Dependencies in the Build Stage__:
+   - We'll use __Poetry__ for dependency management. Install it using `pip`.
    - Next, copy the `pyproject.toml` and `poetry.lock` files to the `/app` directory to install dependencies.
 
    ```Dockerfile
@@ -57,7 +58,7 @@ A Dockerfile is a set of instructions that Docker uses to create an image. In th
    COPY pytorch_project/pyproject.toml pytorch_project/poetry.lock /app/
    ```
 
-3. **Configure Poetry**:
+3. __Configure Poetry__:
    - Configure Poetry to install the dependencies in a virtual environment inside the project directory (not globally). This keeps everything contained and avoids conflicts with the system environment.
 
    ```Dockerfile
@@ -67,14 +68,14 @@ A Dockerfile is a set of instructions that Docker uses to create an image. In th
        POETRY_CACHE_DIR=/tmp/poetry_cache
    ```
 
-4. **Install Dependencies**:
+4. __Install Dependencies__:
    - Use `poetry install --no-root` to install only the dependencies and not the package itself. This is because you typically don't need to install the actual project code at this stage.
 
    ```Dockerfile
    RUN --mount=type=cache,target=/tmp/poetry_cache poetry install --only main --no-root
    ```
 
-5. **Build the Runtime Stage**:
+5. __Build the Runtime Stage__:
    - Now, set up the final runtime image. This stage will only include the required application code and the virtual environment created in the first stage.
    - The final image will use the same Python base image but remain small by avoiding the re-installation of dependencies.
 
@@ -85,14 +86,14 @@ A Dockerfile is a set of instructions that Docker uses to create an image. In th
    COPY --from=builder /app/.venv /app/.venv
    ```
 
-6. **Set Up the Path to Use the Virtual Environment**:
+6. __Set Up the Path to Use the Virtual Environment__:
    - Update the `PATH` environment variable to use the Python binaries from the virtual environment.
 
    ```Dockerfile
    ENV PATH="/app/.venv/bin:$PATH"
    ```
 
-7. **Set a Default Command**:
+7. __Set a Default Command__:
    - Finally, set the command that will be executed by default when the container is run. You can change or override this later in the Docker Compose file.
 
    ```Dockerfile
@@ -126,18 +127,18 @@ CMD ["python", "-m", "src.train"]
 
 ### 2. Setting Up the docker-compose.yml File
 
-The `docker-compose.yml` file is used to define and run multiple Docker containers as services. In this case, we need two services: one for **training** and one for **inference**.
+The `docker-compose.yml` file is used to define and run multiple Docker containers as services. In this case, we need two services: one for __training__ and one for __inference__.
 
 ### Step-by-Step Process for Creating docker-compose.yml
 
-1. **Define the Version**:
+1. __Define the Version__:
    - Docker Compose uses a versioning system. Use version `3.8`, which is widely supported and offers features such as networking and volume support.
 
    ```yaml
    version: '3.8'
    ```
 
-2. **Set Up the `train` Service**:
+2. __Set Up the `train` Service__:
    - The `train` service is responsible for running the training script. It builds the Docker image, runs the training command, and uses volumes to store the data, checkpoints, and artifacts.
 
    ```yaml
@@ -157,7 +158,7 @@ The `docker-compose.yml` file is used to define and run multiple Docker containe
          - .env  # Load environment variables
    ```
 
-3. **Set Up the `inference` Service**:
+3. __Set Up the `inference` Service__:
    - The `inference` service runs after the training has completed. It waits for a file (e.g., `train_done.flag`) to be created by the training process and then runs the inference script.
 
    ```yaml
@@ -177,7 +178,7 @@ The `docker-compose.yml` file is used to define and run multiple Docker containe
          - .env
    ```
 
-4. **Define Shared Volumes**:
+4. __Define Shared Volumes__:
    - Volumes allow services to share data. Here, we define three shared volumes:
      - `data`: Stores the input data.
      - `checkpoints`: Stores the model checkpoints and the flag indicating training is complete.
@@ -190,7 +191,7 @@ The `docker-compose.yml` file is used to define and run multiple Docker containe
      artifacts:
    ```
 
-5. **Set Up Networking**:
+5. __Set Up Networking__:
    - Use the default network to allow the services to communicate.
 
    ```yaml
@@ -246,20 +247,20 @@ networks:
 
 ### Summary
 
-1. **Dockerfile**:
+1. __Dockerfile__:
    - A multi-stage Dockerfile is used to create a lightweight image where the dependencies are installed with Poetry and the application code is run using a virtual environment.
    - It ensures that all dependencies are isolated in a virtual environment, and the final container only includes what is necessary for the runtime.
 
-2. **docker-compose.yml**:
+2. __docker-compose.yml__:
    - The `docker-compose.yml` file defines two services:
-     - **train**: Runs the training script and stores checkpoints.
-     - **inference**: Waits for the training to finish and runs inference based on the saved model.
+     - __train__: Runs the training script and stores checkpoints.
+     - __inference__: Waits for the training to finish and runs inference based on the saved model.
    - Shared volumes ensure that the services can access data, checkpoints, and artifacts.
    - `shm_size` is increased to prevent issues with DataLoader in PyTorch when using multiple workers.
 
 This setup allows for easy management of multiple services using Docker Compose, ensuring reproducibility and simplicity.
 
-## **References**
+## __References__
 
 - <https://stackoverflow.com/questions/53835198/integrating-python-poetry-with-docker>
 - <https://github.com/fralik/poetry-with-private-repos/blob/master/Dockerfile>
@@ -267,9 +268,58 @@ This setup allows for easy management of multiple services using Docker Compose,
 - <https://www.martinrichards.me/post/python_poetry_docker/>
 - <https://gist.github.com/soof-golan/6ebb97a792ccd87816c0bda1e6e8b8c2>
 
-8. ## **DVC SETUP**
+8. ## __DVC SETUP__
 
+First, install dvc using the following command
+
+```bash
 dvc init
 dvc add data
 dvc remote add -d myremote /tmp/dvcstore
 dvc push
+```
+
+Add some more file in the data directory and run the following commands
+
+```bash
+dvc add data
+dvc push
+dvc pull
+```
+
+Next go back to 1 commit and run the following command
+
+```bash
+git checkout HEAD~1
+dvc checkout
+# you will get one file less
+```
+
+Next go back to the latest commit and run the following command
+
+```bash
+git checkout -
+dvc checkout
+dv pull
+```
+
+Next run the following command to add google drive as a remote
+
+```bash
+dvc remote add --default gdrive gdrive://1w2e3r4t5y6u7i8o9p0
+dvc remote modify gdrive gdrive_acknowledge_abuse true
+dvc remote modify gdrive gdrive_client_id <>
+dvc remote modify gdrive gdrive_client_secret <>
+# does not work when used from VM and port forwarding to local machine
+```
+
+Next run the following command to add azure as a remote
+
+```bash
+dvc remote remove azblob
+dvc remote add --default azblob azblob://mycontainer/myfolder
+dvc remote modify azblob connection_string <>
+dvc remote modify azblob  allow_anonymous_login true
+dvc push -r azblob
+# this works when used and requires no explicit login
+```
