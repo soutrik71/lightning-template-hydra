@@ -301,6 +301,7 @@ Next go back to the latest commit and run the following command
 git checkout -
 dvc checkout
 dv pull
+dvc commit
 ```
 
 Next run the following command to add google drive as a remote
