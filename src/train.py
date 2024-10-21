@@ -137,6 +137,8 @@ def setup_run_trainer(cfg: DictConfig):
     root_dir = cfg.paths.root_dir
     logger.info(f"Root directory: {root_dir}")
 
+    logger.info(f"Current working directory: {os.listdir(root_dir)}")
+
     ckpt_dir = cfg.paths.ckpt_dir
     logger.info(f"Checkpoint directory: {ckpt_dir}")
 
@@ -214,10 +216,7 @@ def setup_run_trainer(cfg: DictConfig):
         )
 
     if cfg.get("test"):
-        logger.info("Testing the model")
-        logger.info(
-            f"Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}"
-        )
+        logger.info(f"Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}")
         run_test_module(cfg, datamodule, model, trainer)
 
 

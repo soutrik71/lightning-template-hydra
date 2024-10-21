@@ -1,0 +1,56 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python -m src.train experiment=catdog_experiment ++task_name=train ++train=True
+      ++test=False
+    deps:
+    - path: data
+      hash: md5
+      md5: 07e4910090f4b004ef1902eef2d60326.dir
+      size: 97446510
+      nfiles: 3003
+    - path: src/train.py
+      hash: md5
+      md5: f6d687c49b6bbbad43231a57ef5b270a
+      size: 7833
+      isexec: true
+    outs:
+    - path: checkpoints/best-checkpoint.ckpt
+      hash: md5
+      md5: cea406e205c8cdd8d41925bcd8173dbe
+      size: 3754782
+      isexec: true
+    - path: checkpoints/last.ckpt
+      hash: md5
+      md5: e9ce981cd4dafde4de944137123dd089
+      size: 3754782
+      isexec: true
+    - path: checkpoints/train_done.flag
+      hash: md5
+      md5: bfc5d6f6817daa48ad7ae164aa621dbf
+      size: 20
+      isexec: true
+  eval:
+    cmd: python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False
+      ++test=True
+    deps:
+    - path: checkpoints/best-checkpoint.ckpt
+      hash: md5
+      md5: cea406e205c8cdd8d41925bcd8173dbe
+      size: 3754782
+      isexec: true
+    - path: checkpoints/last.ckpt
+      hash: md5
+      md5: e9ce981cd4dafde4de944137123dd089
+      size: 3754782
+      isexec: true
+    - path: checkpoints/train_done.flag
+      hash: md5
+      md5: bfc5d6f6817daa48ad7ae164aa621dbf
+      size: 20
+      isexec: true
+    - path: src/train.py
+      hash: md5
+      md5: f6d687c49b6bbbad43231a57ef5b270a
+      size: 7833
+      isexec: true

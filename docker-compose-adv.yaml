@@ -1,61 +1,55 @@
 version: '3.8'
 
+x-common:
+  &common-config
+  build:
+    context: .
+  volumes:
+    - data:/app/data
+    - checkpoints:/app/checkpoints
+    - artifacts:/app/artifacts
+    - logs:/app/logs
+  environment:
+    - PYTHONUNBUFFERED=1
+    - PYTHONPATH=/app
+  shm_size: '4g'
+  networks:
+    - default
+  env_file:
+    - .env
+
 services:
   train:
-    build:
-      context: .
-    command: |
-      python -m src.train
-    volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-    shm_size: '4g'  # Shared memory size for large datasets
-    networks:
-      - default
-    env_file:
-      - .env  # Load environment variables
+    <<: *common-config
+    command: >
+      sh -c 'python -m src.train experiment=catdog_experiment ++task_name=train ++train=True ++test=False && tail -f /dev/null'
+    healthcheck:
+      test: ["CMD", "test", "-f", "/app/checkpoints/train_done.flag"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   eval:
-    build:
-      context: .
-    command: |
-      /bin/bash -c "while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 10; done;
-      python -m src.eval"
-    volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-    shm_size: '4g'
-    networks:
-      - default
+    <<: *common-config
+    command: >
+      sh -c 'while [ ! -f ./checkpoints/train_done.flag ]; do sleep 1; done && python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True'
     depends_on:
-      - train  # Ensure train runs before eval
-    env_file:
-      - .env  
+      train:
+        condition: service_healthy
 
   inference:
-    build:
-      context: .
-    command: |
-      /bin/bash -c "while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 10; done;
-      python -m src.infer"
-    volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-    shm_size: '4g'
-    networks:
-      - default
+    <<: *common-config
+    command: >
+      sh -c 'while [ ! -f ./checkpoints/train_done.flag ]; do sleep 1; done && python -m src.infer experiment=catdog_experiment && docker-compose stop train'
     depends_on:
-      - train  # Ensure train runs before inference
-    env_file:
-      - .env  
+      train:
+        condition: service_healthy
 
 volumes:
   data:
   checkpoints:
   artifacts:
+  logs:
 
 networks:
   default:

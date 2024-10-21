@@ -22,9 +22,6 @@ RUN --mount=type=cache,target=/tmp/poetry_cache poetry install --only main --no-
 # Stage 2: Runtime environment
 FROM python:3.10.14-slim as runner
 
-# Set the working directory to /app
-WORKDIR /app
-
 # Copy application source code
 COPY src /app/src
 
@@ -39,6 +36,9 @@ COPY hello.py /app/hello.py
 
 # Copy the virtual environment from the builder stage
 COPY --from=builder /app/.venv /app/.venv
+
+# Set the working directory to /app
+WORKDIR /app
 
 # Set the environment path to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"

@@ -7,10 +7,13 @@ services:
     command: |
       python -m src.train experiment=catdog_experiment ++task_name=train ++train=True ++test=False
     volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-      - logs:/app/logs
+      - ./data:/app/data
+      - ./checkpoints:/app/checkpoints
+      - ./artifacts:/app/artifacts
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     shm_size: '4g' 
     networks:
       - default
@@ -21,17 +24,18 @@ services:
     build:
       context: .
     command: |
-      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True'
+      sh -c 'while [ ! -f ./checkpoints/train_done.flag ]; do sleep 10; done && python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True'
     volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-      - logs:/app/logs
+      - ./data:/app/data
+      - ./checkpoints:/app/checkpoints
+      - ./artifacts:/app/artifacts
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     shm_size: '4g'
     networks:
       - default
-    depends_on:
-      - train
     env_file:
       - .env  
 
@@ -39,17 +43,18 @@ services:
     build:
       context: .
     command: |
-      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.infer experiment=catdog_experiment'
+      sh -c 'while [ ! -f ./checkpoints/train_done.flag ]; do sleep 10; done && python -m src.infer experiment=catdog_experiment'
     volumes:
-      - data:/app/data
-      - checkpoints:/app/checkpoints
-      - artifacts:/app/artifacts
-      - logs:/app/logs
+      - ./data:/app/data
+      - ./checkpoints:/app/checkpoints
+      - ./artifacts:/app/artifacts
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
     shm_size: '4g'
     networks:
       - default
-    depends_on:
-      - train
     env_file:
       - .env  
 

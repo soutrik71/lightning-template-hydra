@@ -10,7 +10,7 @@ data_dir: ${paths.root_dir}/data/
 log_dir: ${paths.root_dir}/logs/
 
 # path to checkpoint directory
-ckpt_dir: ${paths.root_dir}/checkpoints/
+ckpt_dir: ${paths.root_dir}/checkpoints
 
 # path to artifact directory
 artifact_dir: ${paths.root_dir}/artifacts/
