@@ -18,6 +18,7 @@ class CatDogImageDataModule(L.LightningDataModule):
         splits: Tuple[float, float] = (0.8, 0.2),  # Changed to two splits
         pin_memory: bool = False,
         image_size: int = 224,
+        url: str = "https://download.pytorch.org/tutorials/cats_and_dogs_filtered.zip",
     ):
         super().__init__()
         self._data_dir = Path(data_dir)
@@ -27,13 +28,14 @@ class CatDogImageDataModule(L.LightningDataModule):
         self._pin_memory = pin_memory
         self._dataset = None
         self._image_size = image_size
+        self.url = url
 
     def prepare_data(self):
         """Download images if not already downloaded and extracted."""
         dataset_path = self.data_path / "cats_and_dogs_filtered"
         if not dataset_path.exists():
             download_and_extract_archive(
-                url="https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip",
+                url=self.url,
                 download_root=self._data_dir,
                 remove_finished=True,
             )
@@ -106,3 +108,42 @@ class CatDogImageDataModule(L.LightningDataModule):
 
     def test_dataloader(self):
         return self.__dataloader(self.test_dataset)
+
+
+if __name__ == "__main__":
+    import os
+    from pathlib import Path
+    import logging
+
+    import hydra
+    from omegaconf import DictConfig, OmegaConf
+    import lightning as L
+
+    import rootutils
+
+    # Setup root directory
+    root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
+
+    log = logging.getLogger(__name__)
+
+    print(f"Root directory: {root}")
+
+    @hydra.main(
+        version_base="1.3",
+        config_path=str(root / "configs"),
+        config_name="train",
+    )
+    def main(cfg: DictConfig):
+        # print the config
+        log.info(OmegaConf.to_yaml(cfg))
+        # Initialize DataModule
+        log.info(f"Instantiating datamodule <{cfg.data._target_}>")
+        datamodule: L.LightningDataModule = hydra.utils.instantiate(cfg.data)
+        datamodule.prepare_data()
+        datamodule.setup()
+        log.info(f"DataModule instantiated: {datamodule}")
+        log.info(f"Train dataloader: {datamodule.train_dataloader()}")
+        log.info(f"Validation dataloader: {datamodule.val_dataloader()}")
+        log.info(f"Test dataloader: {datamodule.test_dataloader()}")
+
+    main()
