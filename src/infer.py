@@ -7,13 +7,15 @@ from PIL import Image
 from torchvision import transforms
 
 from src.models.dogbreed_classifier import DogbreedClassifier
+from src.models.catdog_classifier import ViTTinyClassifier
 from src.utils.logging_utils import setup_logger, task_wrapper, get_rich_progress
 import pandas as pd
 from loguru import logger
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv, find_dotenv
 import rootutils
+import time
 
 # Load environment variables
 load_dotenv(find_dotenv(".env"))
@@ -23,12 +25,12 @@ root = rootutils.setup_root(__file__, indicator=".project-root")
 
 
 @task_wrapper
-def load_image(image_path: str):
+def load_image(image_path: str, image_size: int):
     """Load and preprocess an image."""
     img = Image.open(image_path).convert("RGB")
     transform = transforms.Compose(
         [
-            transforms.Resize((224, 224)),
+            transforms.Resize((image_size, image_size)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
@@ -70,21 +72,29 @@ def save_prediction_image(
 @task_wrapper
 def download_image(cfg: DictConfig):
     """Download an image from the web for inference."""
-    url = "https://images.pexels.com/photos/2253275/pexels-photo-2253275.jpeg?auto=compress&cs=tinysrgb&w=600"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    url = "https://github.com/laxmimerit/dog-cat-full-dataset/raw/master/data/train/dogs/dog.1.jpg"
+    # url = "https://github.com/laxmimerit/dog-cat-full-dataset/blob/master/data/train/cats/cat.1.jpg"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36",
+    }
 
     response = requests.get(url, headers=headers, allow_redirects=True)
     if response.status_code == 200:
-        image_path = Path(cfg.paths.root_dir) / "dog.jpg"
+        image_path = Path(cfg.paths.root_dir) / "image.jpg"
         with open(image_path, "wb") as file:
             file.write(response.content)
-        logger.info(f"Image downloaded successfully as {image_path}!")
+        time.sleep(5)
+        print(f"Image downloaded successfully as {image_path}!")
     else:
-        logger.error(f"Failed to download image. Status code: {response.status_code}")
+        print(f"Failed to download image. Status code: {response.status_code}")
 
 
 @hydra.main(config_path="../configs", config_name="infer", version_base="1.1")
 def main_infer(cfg: DictConfig):
+
+    # Print the configuration
+    logger.info(OmegaConf.to_yaml(cfg))
+    # Setup logging
     logger_path = Path(cfg.paths.log_dir) / "infer.log"
     setup_logger(logger_path)
 
@@ -93,20 +103,24 @@ def main_infer(cfg: DictConfig):
     if flag_file.exists():
         flag_file.unlink()
 
+    output_folder = Path(cfg.paths.artifact_dir)
+
     # Load the trained model
     logger.info(f"Loading model from checkpoint: {cfg.ckpt_path}")
-    model = DogbreedClassifier.load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
+    if cfg.name == "Dogbreed_experiment":
+        model = DogbreedClassifier.load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
+        classes = (
+            pd.read_csv(Path(cfg.paths.artifact_dir) / "dogbreed_dataset.csv")["label"]
+            .unique()
+            .tolist()
+        )
+    else:
+        model = ViTTinyClassifier.load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
+        classes = ["dog", "cat"]
 
     # Download an image for inference
     logger.info("Downloading an image for inference")
     download_image(cfg)
-
-    output_folder = Path(cfg.paths.artifact_dir)
-    classes = (
-        pd.read_csv(Path(cfg.paths.artifact_dir) / "dogbreed_dataset.csv")["label"]
-        .unique()
-        .tolist()
-    )
 
     logger.info("Starting inference on the downloaded image")
     image_files = [
@@ -119,7 +133,8 @@ def main_infer(cfg: DictConfig):
         task = progress.add_task("[green]Processing images...", total=len(image_files))
 
         for image_file in image_files:
-            img, img_tensor = load_image(image_file)
+            logger.info(f"Processing {image_file}")
+            img, img_tensor = load_image(image_file, cfg.data.image_size)
             predicted_label, confidence = infer(
                 model, img_tensor.to(model.device), classes
             )

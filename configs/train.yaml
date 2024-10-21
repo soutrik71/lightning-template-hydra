@@ -11,11 +11,9 @@ defaults:
   - trainer: default
   - paths: dogbreed
   - hydra: default
-
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
   - experiment: dogbreed_experiment
-
   # debugging config (enable through command line, e.g. `python train.py debug=default)
   - debug: null
 
