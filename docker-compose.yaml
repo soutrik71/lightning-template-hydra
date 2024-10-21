@@ -5,7 +5,7 @@ services:
     build:
       context: .
     command: |
-      python -m src.train
+      python -m src.train experiment=catdog_experiment ++task_name=train ++train=True ++test=False
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints
@@ -15,13 +15,13 @@ services:
     networks:
       - default
     env_file:
-      - .env 
+      - .env
 
   eval:
     build:
       context: .
     command: |
-      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.eval'
+      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True'
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints
@@ -39,7 +39,7 @@ services:
     build:
       context: .
     command: |
-      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.infer'
+      sh -c 'while [ ! -f /app/checkpoints/train_done.flag ]; do sleep 1; done && python -m src.infer experiment=catdog_experiment'
     volumes:
       - data:/app/data
       - checkpoints:/app/checkpoints

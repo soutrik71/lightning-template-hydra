@@ -209,8 +209,15 @@ def setup_run_trainer(cfg: DictConfig):
             f.write("Training completed.\n")
         logger.info(f"Training completion flag written to: {done_flag_path}")
 
+        logger.info(
+            f"Training completed. Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}"
+        )
+
     if cfg.get("test"):
         logger.info("Testing the model")
+        logger.info(
+            f"Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}"
+        )
         run_test_module(cfg, datamodule, model, trainer)
 
 

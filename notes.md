@@ -324,6 +324,7 @@ dvc remote modify azblob  allow_anonymous_login true
 dvc push -r azblob
 # this works when used and requires no explicit login
 ```
+
 9. ## __HYDRA SETUP__
 
 ```bash
@@ -337,4 +338,12 @@ python -m src.hydra_test experiment=catdog_experiment ++task_name=train ++train=
 python -m src.hydra_test experiment=catdog_experiment ++task_name=eval ++train=False ++test=True
 # for both
 python -m src.hydra_test experiment=catdog_experiment task_name=train train=True test=True # + means adding new key value pair to the existing config and ++ means overriding the existing key value pair
+```
+
+10. ## __LOCAL SETUP__
+
+```bash
+ python -m src.train experiment=catdog_experiment ++task_name=train ++train=True ++test=False
+ python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True
+ python -m src.infer experiment=catdog_experiment
 ```

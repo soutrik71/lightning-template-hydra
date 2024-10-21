@@ -15,7 +15,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv, find_dotenv
 import rootutils
-import time
+import time, os
 
 # Load environment variables
 load_dotenv(find_dotenv(".env"))
@@ -107,6 +107,7 @@ def main_infer(cfg: DictConfig):
 
     # Load the trained model
     logger.info(f"Loading model from checkpoint: {cfg.ckpt_path}")
+    logger.info(f'files in checkpoint dir: {os.listdir( "/app/checkpoints")}')
     if cfg.name == "Dogbreed_experiment":
         model = DogbreedClassifier.load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
         classes = (
