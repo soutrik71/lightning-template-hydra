@@ -22,8 +22,13 @@ poetry add matplotlib
 poetry add hydra-core
 poetry add omegaconf
 poetry add hydra_colorlog
+poetry add --dev black # 
 poetry lock
 poetry show
+
+Type	Purpose	Installation Command
+  Normal Dependency	Required for the app to run in production.	poetry add <package>
+  Development Dependency	Needed only during development (e.g., testing, linting).	poetry add --dev <package>
 ```
 
 ## __MULTISTAGEDOCKER SETUP__
