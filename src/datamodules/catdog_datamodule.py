@@ -111,7 +111,6 @@ class CatDogImageDataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
-    import os
     from pathlib import Path
     import logging
 
