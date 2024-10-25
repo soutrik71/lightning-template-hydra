@@ -5,9 +5,9 @@ stages:
     deps:
     - path: data
       hash: md5
-      md5: 7a006bdbb18f2c25d0edc701c2498643.dir
-      size: 97446825
-      nfiles: 3004
+      md5: 07e4910090f4b004ef1902eef2d60326.dir
+      size: 97446510
+      nfiles: 3003
     - path: docker-compose.yaml
       hash: md5
       md5: b1e582563815621328f3038548bcfa6c
