@@ -352,3 +352,9 @@ python -m src.hydra_test experiment=catdog_experiment task_name=train train=True
  python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False ++test=True
  python -m src.infer experiment=catdog_experiment
 ```
+
+11. ## _DVC_PIPELINE_SETUP_
+
+```bash
+dvc repro
+```

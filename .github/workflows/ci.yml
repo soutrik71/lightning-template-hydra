@@ -22,7 +22,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.10.14]
+        python-version: [3.10.15]
 
     steps:
       # Step 1: Checkout the repository code
@@ -71,6 +71,7 @@ jobs:
         run: |
           echo "KAGGLE_USERNAME=${{ secrets.KAGGLE_USERNAME }}" >> .env
           echo "KAGGLE_KEY=${{ secrets.KAGGLE_KEY }}" >> .env
+          echo "AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" >> .env
           echo ".env file created"
         working-directory: pytorch_project
 
@@ -82,6 +83,7 @@ jobs:
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
 
       # Step 9: Upload the coverage XML report as an artifact
       - name: Upload coverage report

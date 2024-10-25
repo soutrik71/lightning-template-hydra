@@ -1,45 +1,28 @@
 import sys
-import os
-import pytest
-from omegaconf import OmegaConf
-import hydra
+from pathlib import Path
 import rootutils
 
-# Setup root directory to project root and add src/ to the Python path
+# Set up the project root
 root = rootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
-from src.datamodules.dogbreed_datamodule import DogbreedDataModule, input_dataprep
+# Ensure the src directory is in the PYTHONPATH
+sys.path.insert(0, str(root / "src"))
 
-
-@pytest.fixture(scope="session")
-def config():
-    """Load the configuration from the test.yaml file, once per test session."""
-    # Set the absolute path to the configuration file
-    config_path = os.path.abspath(os.path.join(root, "configs"))
-
-    # Initialize Hydra and compose configurations from test.yaml and its defaults
-    with hydra.initialize_config_dir(config_dir=config_path):
-        cfg = hydra.compose(config_name="test")
-
-    # Debugging: Print the merged config to verify
-    print(OmegaConf.to_yaml(cfg))
-
-    # Ensure that the model key exists
-    if "model" not in cfg:
-        raise KeyError("Missing key 'model' in config file")
-
-    return cfg
-
-
-@pytest.fixture(scope="session")
-def dataset_df(config):
-    """Prepare the dataset once for all tests in the session."""
-    return input_dataprep(config)
+import pytest
+from src.datamodules.catdog_datamodule import CatDogImageDataModule
 
 
 @pytest.fixture
-def datamodule(config, dataset_df):
-    """Initialize the DogbreedDataModule for each test."""
-    return DogbreedDataModule(
-        cfg=config, dataset_df=dataset_df  # Pass the config object as a parameter
+def data_module():
+    """
+    Fixture to initialize the CatDogImageDataModule with test-specific settings.
+    Provides a reusable instance across multiple tests.
+    """
+    return CatDogImageDataModule(
+        data_dir="test_data",  # Adjust to your test data path
+        num_workers=1,
+        batch_size=4,
+        splits=(0.7, 0.3),  # Custom split for testing
+        pin_memory=False,
+        image_size=128,  # Smaller image size for faster testing
     )

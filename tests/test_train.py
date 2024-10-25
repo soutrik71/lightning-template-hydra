@@ -1,98 +1,106 @@
 import pytest
-from unittest.mock import MagicMock
-import torch
-import lightning as L
+from unittest.mock import patch, MagicMock
 from src.train import (
     instantiate_callbacks,
     instantiate_loggers,
+    load_checkpoint_if_available,
+    clear_checkpoint_directory,
     train_module,
     run_test_module,
-    setup_run_trainer,
 )
+from pathlib import Path
+import lightning as L
+from omegaconf import OmegaConf, DictConfig
 
 
-# Mocking Hydra's utils and trainer for the tests
 @pytest.fixture
-def mock_hydra_utils(mocker):
-    # Mock hydra.utils.instantiate to accept any arguments and return a mock
-    mocker.patch(
-        "hydra.utils.instantiate", side_effect=lambda *args, **kwargs: MagicMock()
+def dummy_cfg():
+    """Create a dummy configuration for testing."""
+    return DictConfig(
+        {
+            "paths": {
+                "ckpt_dir": "test_checkpoints",
+                "log_dir": "test_logs",
+                "artifact_dir": "test_artifacts",
+            },
+            "ckpt_path": None,  # Add this line to fix the missing key issue
+            "callbacks": {},
+            "logger": {},
+            "model": {"_target_": "src.models.catdog_classifier.ViTTinyClassifier"},
+            "trainer": {"_target_": "lightning.Trainer", "max_epochs": 1},
+            "train": True,
+            "test": True,
+            "task_name": "train",
+            "seed": 42,
+        }
     )
-    return mocker
 
 
-@pytest.fixture
-def mock_trainer():
-    """Mock the trainer to bypass actual model training."""
-    trainer = MagicMock(spec=L.Trainer)
-    trainer.callback_metrics = {"loss": 0.1, "accuracy": 0.9}
-    trainer.checkpoint_callback.best_model_path = "best_checkpoint.ckpt"
-    return trainer
-
-
-@pytest.fixture
-def mock_datamodule():
-    """Mock the DataModule for training and testing."""
-    datamodule = MagicMock(spec=L.LightningDataModule)
-    return datamodule
-
-
-@pytest.fixture
-def mock_model():
-    """Mock the model."""
-    model = MagicMock(spec=L.LightningModule)
-    return model
-
-
-# Test instantiate_callbacks function
-def test_instantiate_callbacks(mock_hydra_utils, config):
-    callbacks = instantiate_callbacks(config.get("callbacks"))
+@patch("src.train.hydra.utils.instantiate")
+def test_instantiate_callbacks(mock_instantiate, dummy_cfg):
+    mock_instantiate.return_value = MagicMock()
+    callbacks = instantiate_callbacks(dummy_cfg.callbacks)
     assert isinstance(callbacks, list)
-    # Check that the number of callbacks matches the configuration (4 callbacks in this case)
-    assert len(callbacks) == 4  # Expecting 4 callbacks based on the config
+    assert len(callbacks) == 0  # Assuming empty callbacks config for this test
 
 
-# Test instantiate_loggers function
-def test_instantiate_loggers(mock_hydra_utils, config):
-    loggers = instantiate_loggers(config.get("logger"))
+@patch("src.train.hydra.utils.instantiate")
+def test_instantiate_loggers(mock_instantiate, dummy_cfg):
+    mock_instantiate.return_value = MagicMock()
+    loggers = instantiate_loggers(dummy_cfg.logger)
     assert isinstance(loggers, list)
-    assert len(loggers) == 0  # No loggers in mock config
+    assert len(loggers) == 0  # Assuming empty logger config for this test
 
 
-# Test train_module function
-def test_train_module(mock_trainer, mock_model, mock_datamodule, config):
-    train_module(config, mock_datamodule, mock_model, mock_trainer)
-    mock_trainer.fit.assert_called_once_with(mock_model, mock_datamodule)
-    assert "loss" in mock_trainer.callback_metrics
-    assert "accuracy" in mock_trainer.callback_metrics
+def test_load_checkpoint_if_available():
+    path = "test_checkpoint.ckpt"
+    Path(path).touch()  # Create an empty file
+    assert load_checkpoint_if_available(path) == path
+    Path(path).unlink()  # Remove the file
+    assert load_checkpoint_if_available(path) is None
 
 
-# # Test test function
-# def test_run_test_module(mock_trainer, mock_model, mock_datamodule, config):
-#     run_test_module(config, mock_datamodule, mock_model, mock_trainer)
-#     mock_trainer.test.assert_called_with(
-#         mock_model, mock_datamodule, ckpt_path="best_checkpoint.ckpt"
-#     )
+def test_clear_checkpoint_directory(tmp_path):
+    ckpt_dir = tmp_path / "checkpoints"
+    ckpt_dir.mkdir()
+    (ckpt_dir / "file1.ckpt").touch()
+    (ckpt_dir / "file2.ckpt").touch()
+
+    clear_checkpoint_directory(str(ckpt_dir))
+    assert len(list(ckpt_dir.iterdir())) == 0
 
 
-# Integration test for setup_run_trainer using test.yaml configuration
-def test_setup_run_trainer(
-    mock_hydra_utils, config, mock_trainer, mock_datamodule, mock_model, mocker
-):
-    # Ensure the model config exists
-    assert "model" in config, "Model configuration is missing"
+@patch("src.train.logger.info")
+def test_train_module(mock_logger, dummy_cfg):
+    # Mock model, datamodule, and trainer
+    model = MagicMock(spec=L.LightningModule)
+    datamodule = MagicMock(spec=L.LightningDataModule)
 
-    # Mock the dataloader and other utilities
-    mocker.patch(
-        "src.train.main_dataloader", return_value=(MagicMock(), mock_datamodule)
-    )
-    mocker.patch("src.utils.logging_utils.setup_logger")
-    mocker.patch("torch.cuda.is_available", return_value=False)
-    mocker.patch("lightning.seed_everything")
+    # Create an actual instance of Trainer with `fit` as a real method
+    with patch("src.train.L.Trainer.fit") as mock_fit:
+        trainer = L.Trainer()
 
-    # Run the trainer setup with the test.yaml configuration
-    setup_run_trainer(config)
+        # Run the training module
+        train_module(dummy_cfg, datamodule, model, trainer)
 
-    # Assertions to verify correct behavior
-    # assert torch.cuda.is_available() == False
-    L.seed_everything.assert_called_once_with(config.seed, workers=True)
+        # Assert that the `fit` method was called once
+        mock_fit.assert_called_once()
+
+
+@patch("src.train.logger.info")
+def test_run_test_module(mock_logger, dummy_cfg):
+    # Mock model, datamodule, and trainer
+    model = MagicMock(spec=L.LightningModule)
+    datamodule = MagicMock(spec=L.LightningDataModule)
+
+    # Create an actual instance of Trainer with `test` as a real method
+    with patch.object(
+        L.Trainer, "test", return_value=[{"test_loss": 0.5, "test_acc": 0.8}]
+    ) as mock_test:
+        trainer = L.Trainer()
+
+        # Run the testing module
+        run_test_module(dummy_cfg, datamodule, model, trainer)
+
+        # Assert that the `test` method was called once
+        mock_test.assert_called_once()
