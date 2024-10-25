@@ -5,8 +5,6 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from PIL import Image
 from torchvision import transforms
-
-from src.models.dogbreed_classifier import DogbreedClassifier
 from src.models.catdog_classifier import ViTTinyClassifier
 from src.utils.logging_utils import setup_logger, task_wrapper, get_rich_progress
 import pandas as pd
@@ -15,7 +13,8 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from dotenv import load_dotenv, find_dotenv
 import rootutils
-import time, os
+import time
+import os
 
 # Load environment variables
 load_dotenv(find_dotenv(".env"))

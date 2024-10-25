@@ -74,6 +74,11 @@ jobs:
         run: |
           source pytorch_project/.venv/bin/activate
           python -m src.train
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+
 
       # Step 9: Generate and publish CML report
       - name: Create CML report
