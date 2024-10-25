@@ -1,29 +1,28 @@
 schema: '2.0'
 stages:
   train:
-    cmd: python -m src.train experiment=catdog_experiment ++task_name=train ++train=True
-      ++test=False
+    cmd: docker-compose run --rm train
     deps:
     - path: data
       hash: md5
-      md5: 07e4910090f4b004ef1902eef2d60326.dir
-      size: 97446510
-      nfiles: 3003
+      md5: 7a006bdbb18f2c25d0edc701c2498643.dir
+      size: 97446825
+      nfiles: 3004
+    - path: docker-compose.yaml
+      hash: md5
+      md5: b1e582563815621328f3038548bcfa6c
+      size: 1513
+      isexec: true
     - path: src/train.py
       hash: md5
-      md5: f6d687c49b6bbbad43231a57ef5b270a
-      size: 7833
+      md5: bdbb8239bb14b591737e3ff7dce2ce81
+      size: 8161
       isexec: true
     outs:
     - path: checkpoints/best-checkpoint.ckpt
       hash: md5
-      md5: cea406e205c8cdd8d41925bcd8173dbe
-      size: 3754782
-      isexec: true
-    - path: checkpoints/last.ckpt
-      hash: md5
-      md5: e9ce981cd4dafde4de944137123dd089
-      size: 3754782
+      md5: 97f4f9ae86090b75c6842633e04b03d2
+      size: 3754462
       isexec: true
     - path: checkpoints/train_done.flag
       hash: md5
@@ -31,26 +30,25 @@ stages:
       size: 20
       isexec: true
   eval:
-    cmd: python -m src.train experiment=catdog_experiment ++task_name=eval ++train=False
-      ++test=True
+    cmd: docker-compose run --rm eval
     deps:
     - path: checkpoints/best-checkpoint.ckpt
       hash: md5
-      md5: cea406e205c8cdd8d41925bcd8173dbe
-      size: 3754782
-      isexec: true
-    - path: checkpoints/last.ckpt
-      hash: md5
-      md5: e9ce981cd4dafde4de944137123dd089
-      size: 3754782
+      md5: 97f4f9ae86090b75c6842633e04b03d2
+      size: 3754462
       isexec: true
     - path: checkpoints/train_done.flag
       hash: md5
       md5: bfc5d6f6817daa48ad7ae164aa621dbf
       size: 20
       isexec: true
+    - path: docker-compose.yaml
+      hash: md5
+      md5: b1e582563815621328f3038548bcfa6c
+      size: 1513
+      isexec: true
     - path: src/train.py
       hash: md5
-      md5: f6d687c49b6bbbad43231a57ef5b270a
-      size: 7833
+      md5: 062dab7a3913f21743461eaa1cc90454
+      size: 8058
       isexec: true
