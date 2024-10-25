@@ -1,0 +1,115 @@
+name: Train and Report
+
+on:
+  push:
+    branches: [ main, feat/* ]
+  pull_request:
+    branches: [ main, feat/* ]
+
+jobs:
+  train-and-report:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+      id-token: write
+
+    strategy:
+      matrix:
+        python-version: [3.10.15]
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment with the specified version
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Step 3: Install Poetry and set virtualenv to be created inside the project directory
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry config virtualenvs.in-project true
+
+      # Step 4: Cache Poetry dependencies
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            pytorch_project/.venv  # Cache the virtual environment in the project directory
+            ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('pytorch_project/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      # Step 5: Install dependencies with Poetry
+      - name: Install dependencies
+        working-directory: pytorch_project
+        run: |
+          poetry install
+
+      # Step 6: Set environment variables from GitHub Secrets and write to .env
+      - name: Create .env file
+        run: |
+          echo "AZURE_STORAGE_CONNECTION_STRING=${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}" >> .env
+          echo ".env file created"
+        working-directory: pytorch_project
+
+      # Step 7: Pull data from DVC (Azure dependencies only)
+      - name: Pull data from DVC
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+        run: |
+          source pytorch_project/.venv/bin/activate
+          dvc pull
+
+      # Step 8: Train model
+      - name: Train model
+        run: |
+          source pytorch_project/.venv/bin/activate
+          python -m src.train
+
+      # Step 9: Generate and publish CML report
+      - name: Create CML report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source pytorch_project/.venv/bin/activate
+          
+          # Generate plots and test metrics table
+          python scripts/generate_plots.py
+          
+          # Create markdown report
+          echo "## Model Training Results" >> report.md
+          echo "### Training Metrics" >> report.md
+          echo "![Training Loss](./train_loss.png)" >> report.md
+          echo "![Training Accuracy](./train_acc.png)" >> report.md
+          
+          echo "### Test Metrics" >> report.md
+          cat test_metrics.md >> report.md
+          
+          # Post CML report as a comment in GitHub
+          cml comment create report.md
+
+      # Step 10: Upload model checkpoints, logs, and configs as artifacts
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-checkpoints
+          path: ./checkpoints/
+      - name: Upload Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: ./logs/
+      - name: Upload Configs
+        uses: actions/upload-artifact@v4
+        with:
+          name: configs
+          path: ./configs/
