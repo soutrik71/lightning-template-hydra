@@ -20,7 +20,7 @@ ignore =
     W503,  
     E501,
     E402,
-    E401
+    F401
 
 max-complexity = 10
 show-source = True
