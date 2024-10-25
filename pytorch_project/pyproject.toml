@@ -6,7 +6,7 @@ authors = ["soutrik71 <soutrik.chowdhury@ab-inbev.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.14"
+python = "3.10.15"
 black = "24.8.0"
 coverage = ">=7.6.1"
 hydra-colorlog = "1.2.0"
