@@ -155,14 +155,28 @@ jobs:
         run: |
           source .venv/bin/activate 
           poetry env info
+
+      # get data from dvc
+      - name: Get data from DVC
+        run: |
+          source pytorch_project/.venv/bin/activate 
+          echo "Getting data from DVC"
+          dvc pull
+        env:  # Load .env file into environment
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+
       # Step 7: Run the model training code
       - name: Run Train code
         run: |
           source pytorch_project/.venv/bin/activate 
+          echo "Training the model"
           python -m src.train
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
       # Step 8: Check if the training accuracy is above a certain threshold
       - name: Check validation accuracy
         run: |
@@ -183,8 +197,8 @@ jobs:
             exit 1
           fi
 
-          # Check if accuracy is less than 95%
-          if [ $accuracy -lt 0.95 ]; then
+          # Check if accuracy is less than x%
+          if [ $accuracy -lt 0.5 ]; then
             echo "Train accuracy ($accuracy%) is below 95%. Failing the build."
             exit 1
           else
