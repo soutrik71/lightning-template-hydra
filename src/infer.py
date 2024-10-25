@@ -117,7 +117,7 @@ def main_infer(cfg: DictConfig):
         )
     else:
         model = ViTTinyClassifier.load_from_checkpoint(checkpoint_path=cfg.ckpt_path)
-        classes = ["dog", "cat"]
+        classes = ["cat", "dog"]
 
     # Download an image for inference
     logger.info("Downloading an image for inference")

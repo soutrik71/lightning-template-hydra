@@ -130,7 +130,10 @@ def setup_run_trainer(cfg: DictConfig):
     # show me the entire config
     logger.info(f"Config:\n{OmegaConf.to_yaml(cfg)}")
     # Initialize logger
-    log_path = Path(cfg.paths.log_dir) / "train.log"
+    if cfg.task_name == "train":
+        log_path = Path(cfg.paths.log_dir) / "train.log"
+    else:
+        log_path = Path(cfg.paths.log_dir) / "eval.log"
     setup_logger(log_path)
 
     # the path to the checkpoint directory
@@ -153,6 +156,10 @@ def setup_run_trainer(cfg: DictConfig):
     # the path to the artifact directory
     artifact_dir = cfg.paths.artifact_dir
     logger.info(f"Artifact directory: {artifact_dir}")
+
+    # output directory
+    output_dir = cfg.paths.output_dir
+    logger.info(f"Output directory: {output_dir}")
 
     # name of the experiment
     experiment_name = cfg.name
@@ -189,7 +196,9 @@ def setup_run_trainer(cfg: DictConfig):
     # Set up callbacks and loggers
     logger.info("Setting up callbacks and loggers")
     callbacks: List[L.Callback] = instantiate_callbacks(cfg.get("callbacks"))
+    logger.info(f"Callbacks: {callbacks}")
     loggers: List[Logger] = instantiate_loggers(cfg.get("logger"))
+    logger.info(f"Loggers: {loggers}")
 
     # Initialize Trainer
     logger.info(f"Instantiating trainer <{cfg.trainer._target_}>")

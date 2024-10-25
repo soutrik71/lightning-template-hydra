@@ -1,5 +1,5 @@
 # Stage 1: Build environment with Poetry and dependencies
-FROM python:3.10.14-slim as builder
+FROM python:3.10.15-slim as builder
 
 # Install Poetry
 RUN pip3 install poetry==1.7.1
@@ -20,7 +20,7 @@ ENV POETRY_NO_INTERACTION=1 \
 RUN --mount=type=cache,target=/tmp/poetry_cache poetry install --only main --no-root
 
 # Stage 2: Runtime environment
-FROM python:3.10.14-slim as runner
+FROM python:3.10.15-slim as runner
 
 # Copy application source code
 COPY src /app/src

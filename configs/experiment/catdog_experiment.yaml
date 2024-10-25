@@ -19,7 +19,7 @@ name: "catdog_experiment"
 
 data:
   batch_size: 64
-  num_workers: 10
+  num_workers: 8
   pin_memory: True
   image_size: 160
 
