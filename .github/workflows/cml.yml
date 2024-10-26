@@ -83,7 +83,7 @@ jobs:
 
       # set up CML
       - name: Set up CML
-        uses: iterative/setup-cml@v1
+        uses: iterative/setup-cml@v2
 
       # Step 9: Generate and publish CML report
       - name: Create CML report
@@ -93,7 +93,7 @@ jobs:
           source pytorch_project/.venv/bin/activate
           
           # Generate plots and test metrics table
-          python scripts/generate_plots.py
+          python -m scripts.generate_plots
           
           # Create markdown report
           echo "## Model Training Results" >> report.md
