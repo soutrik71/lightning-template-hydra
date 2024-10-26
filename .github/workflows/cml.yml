@@ -81,6 +81,9 @@ jobs:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
 
+      # set up CML
+      - name: Set up CML
+        uses: iterative/setup-cml@v1
 
       # Step 9: Generate and publish CML report
       - name: Create CML report
