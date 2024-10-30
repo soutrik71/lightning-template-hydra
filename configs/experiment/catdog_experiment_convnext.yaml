@@ -27,7 +27,7 @@ logger:
       model_type: "timm_classify"
 
 data:
-  batch_size: 164
+  batch_size: 64
   num_workers: 8
   pin_memory: True
   image_size: 160
@@ -45,7 +45,7 @@ model:
 
 trainer:
   min_epochs: 1
-  max_epochs: 5
+  max_epochs: 3
 
 callbacks:
   model_checkpoint:

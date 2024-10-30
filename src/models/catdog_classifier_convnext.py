@@ -6,7 +6,7 @@ import lightning as L
 import torch
 import torch.nn.functional as F
 from torch import optim
-from torchmetrics import Accuracy
+from torchmetrics import Accuracy, MaxMetric
 from timm.models.convnext import ConvNeXt
 import timm
 
@@ -41,6 +41,9 @@ class ConvNextClassifier(L.LightningModule):
         self.val_acc = Accuracy(task="multiclass", num_classes=num_classes)
         self.test_acc = Accuracy(task="multiclass", num_classes=num_classes)
 
+        # Best so far test accuracy
+        self.test_acc_best = MaxMetric()
+
     def forward(self, x):
         return self.model(x)
 
@@ -71,6 +74,12 @@ class ConvNextClassifier(L.LightningModule):
         self.test_acc(preds, y)
         self.log("test_loss", loss, prog_bar=True)
         self.log("test_acc", self.test_acc, prog_bar=True)
+
+    def on_test_epoch_end(self):
+        self.test_acc_best(self.val_acc.compute())  # update best so far val acc
+        # log `test_acc_best` as a value through `.compute()` method, instead of as a metric object
+        # otherwise metric would be reset by lightning after each epoch
+        self.log("test_acc_best", self.test_acc_best.compute(), prog_bar=True)
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(

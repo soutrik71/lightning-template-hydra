@@ -362,3 +362,10 @@ dvc repro
   - To run the dvc experiments keep different experiment_<>.yaml files in the configs folder under experiment folder
   - Make sure to override the default values in the experiment_<>.yaml file for each parameter that you want to change
 
+13. ## _HYDRA Experiments_
+  - make sure to declare te config file in yaml format in the configs folder hparam
+  - have hparam null in train and eval config file
+  - run the following command to run the hydra experiment
+  ```bash
+  
+  ```

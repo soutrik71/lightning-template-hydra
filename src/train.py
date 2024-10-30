@@ -13,7 +13,6 @@ import rootutils
 import hydra
 from omegaconf import DictConfig, OmegaConf
 
-
 # Load environment variables
 load_dotenv(find_dotenv(".env"))
 
@@ -111,6 +110,8 @@ def train_module(
     except KeyError:
         logger.info(f"Training completed with the following metrics:{train_metrics}")
 
+    return train_metrics
+
 
 @task_wrapper
 def run_test_module(
@@ -128,6 +129,8 @@ def run_test_module(
     # If no checkpoint is available, Lightning will use current model weights
     test_metrics = trainer.test(model, datamodule, ckpt_path=ckpt_path)
     logger.info(f"Test metrics:\n{test_metrics}")
+
+    return test_metrics[0] if test_metrics else {}
 
 
 @hydra.main(config_path="../configs", config_name="train", version_base="1.1")
@@ -216,12 +219,13 @@ def setup_run_trainer(cfg: DictConfig):
     )
 
     # Train and test the model based on config settings
+    train_metrics = {}
     if cfg.get("train"):
         # clear the checkpoint directory
         clear_checkpoint_directory(cfg.paths.ckpt_dir)
 
         logger.info("Training the model")
-        train_module(cfg, datamodule, model, trainer)
+        train_metrics = train_module(cfg, datamodule, model, trainer)
 
         # Write training done flag using Hydra paths config
         done_flag_path = Path(cfg.paths.ckpt_dir) / "train_done.flag"
@@ -233,9 +237,23 @@ def setup_run_trainer(cfg: DictConfig):
             f"Training completed. Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}"
         )
 
+    test_metrics = {}
     if cfg.get("test"):
         logger.info(f"Checkpoint directory: {os.listdir(cfg.paths.ckpt_dir)}")
-        run_test_module(cfg, datamodule, model, trainer)
+        test_metrics = run_test_module(cfg, datamodule, model, trainer)
+
+    # Combine metrics
+    all_metrics = {**train_metrics, **test_metrics}
+
+    # Extract and return the optimization metric
+    optimization_metric = all_metrics.get(cfg.get("optimization_metric"))
+    if optimization_metric is None:
+        logger.warning(
+            f"Optimization metric '{cfg.get('optimization_metric')}' not found in metrics. Returning 0."
+        )
+        return 0.0
+
+    return optimization_metric
 
 
 if __name__ == "__main__":

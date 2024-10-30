@@ -11,6 +11,7 @@ defaults:
   - trainer: default
   - paths: dogbreed
   - hydra: default
+  - hparam: null
   # experiment configs allow for version control of specific hyperparameters
   # e.g. best hyperparameters for given model and datamodule
   - experiment: dogbreed_experiment
