@@ -29,9 +29,8 @@ def instantiate_callbacks(callback_cfg: DictConfig) -> List[L.Callback]:
         logger.warning("No callback configs found! Skipping..")
         return callbacks
 
-    if not isinstance(callbacks_cfg, DictConfig):
+    if not isinstance(callback_cfg, DictConfig):
         raise TypeError("Callbacks config must be a DictConfig!")
-
 
     for _, cb_conf in callback_cfg.items():
         if "_target_" in cb_conf:
@@ -183,7 +182,10 @@ def setup_run_trainer(cfg: DictConfig):
         dataset_df.to_csv(
             Path(cfg.paths.artifact_dir) / "dogbreed_dataset.csv", index=False
         )
-    elif experiment_name == "catdog_experiment":
+    elif (
+        experiment_name == "catdog_experiment"
+        or experiment_name == "catdog_experiment_convnext"
+    ):
         # Initialize DataModule
         logger.info(f"Instantiating datamodule <{cfg.data._target_}>")
         datamodule: L.LightningDataModule = hydra.utils.instantiate(cfg.data)

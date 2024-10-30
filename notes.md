@@ -358,3 +358,7 @@ python -m src.hydra_test experiment=catdog_experiment task_name=train train=True
 ```bash
 dvc repro
 ```
+12. ## _DVC Experiments_
+  - To run the dvc experiments keep different experiment_<>.yaml files in the configs folder under experiment folder
+  - Make sure to override the default values in the experiment_<>.yaml file for each parameter that you want to change
+
