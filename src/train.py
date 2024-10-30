@@ -29,6 +29,10 @@ def instantiate_callbacks(callback_cfg: DictConfig) -> List[L.Callback]:
         logger.warning("No callback configs found! Skipping..")
         return callbacks
 
+    if not isinstance(callbacks_cfg, DictConfig):
+        raise TypeError("Callbacks config must be a DictConfig!")
+
+
     for _, cb_conf in callback_cfg.items():
         if "_target_" in cb_conf:
             logger.info(f"Instantiating callback <{cb_conf._target_}>")
@@ -44,6 +48,9 @@ def instantiate_loggers(logger_cfg: DictConfig) -> List[Logger]:
     if not logger_cfg:
         logger.warning("No logger configs found! Skipping..")
         return loggers_ls
+
+    if not isinstance(logger_cfg, DictConfig):
+        raise TypeError("Logger config must be a DictConfig!")
 
     for _, lg_conf in logger_cfg.items():
         if "_target_" in lg_conf:
