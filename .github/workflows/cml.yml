@@ -1,11 +1,13 @@
-name: Train and Report
+name: CML Workflow
 
 on:
   push:
-    branches: [ main, feat/* ]
+    branches: [ main]
   pull_request:
-    branches: [ main, feat/* ]
+    branches: [ main]
+  workflow_dispatch:
 
+  
 jobs:
   train-and-report:
     runs-on: ubuntu-latest
@@ -14,6 +16,11 @@ jobs:
       pull-requests: write
       repository-projects: write
       id-token: write
+    env:
+      AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+      KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+      KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+      REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     strategy:
       matrix:
@@ -69,17 +76,15 @@ jobs:
           AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
         run: |
           source pytorch_project/.venv/bin/activate
-          dvc pull
+          echo "Pulling data from DVC"
+          dvc pull || echo "No data to pull from DVC"
 
       # Step 8: Train model
       - name: Train model
         run: |
           source pytorch_project/.venv/bin/activate
-          python -m src.train
-        env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
-          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-          KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
+          echo "Training model"
+          python -m dvc repro
 
       # set up CML
       - name: Set up CML
