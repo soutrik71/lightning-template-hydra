@@ -13,7 +13,7 @@ on:
 # Environment variables for the Docker image
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository_owner }}/$(basename ${{ github.repository }})
 
 jobs:
   python_basic_test:
@@ -96,7 +96,7 @@ jobs:
       - name: Run lint checks
         run: |
           source pytorch_project/.venv/bin/activate
-          flake8 .
+          flake8 . --exclude=.venv,tests,notebooks
 
       # Step 11: Run mypy checks at the root level
       - name: download coverage report
@@ -172,7 +172,8 @@ jobs:
         run: |
           source pytorch_project/.venv/bin/activate 
           echo "Training the model"
-          python -m src.train
+          python -m src.train experiment=catdog_experiment_convnext ++task_name=train ++train=True ++test=False
+          python -m src.create_artifacts
         env:  # Load .env file into environment
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
@@ -181,29 +182,29 @@ jobs:
       - name: Check validation accuracy
         run: |
           LOG_FILE_PATH="/home/runner/work/lightning-template-hydra/lightning-template-hydra/logs/train.log"
-          
+
           if [ ! -f $LOG_FILE_PATH ]; then
             echo "Log file not found. Failing the build."
             exit 1
-          else
-            echo "Log file found. Proceeding with the build."
           fi
 
           # Extract train accuracy from the log file
           accuracy=$(grep -oP 'train_acc: \K[0-9]+(\.[0-9]+)?' $LOG_FILE_PATH)
-          
+
           if [ -z "$accuracy" ]; then
             echo "Train accuracy not found in the log file. Failing the build."
             exit 1
           fi
 
-          # Check if accuracy is less than x%
-          if [ $accuracy -lt 0.5 ]; then
-            echo "Train accuracy ($accuracy%) is below 95%. Failing the build."
+          # Check if accuracy is below threshold using bc for decimal comparison
+          threshold=0.50
+          if (( $(echo "$accuracy < $threshold" | bc -l) )); then
+            echo "Train accuracy ($accuracy) is below threshold ($threshold). Failing the build."
             exit 1
           else
-            echo "Train accuracy ($accuracy%) is sufficient. Proceeding with the build."
+            echo "Train accuracy ($accuracy) meets threshold ($threshold). Proceeding with the build."
           fi
+
       # Step 9: Upload the model checkpoints, logs, and configs as artifacts
       - name: upload model checkpoints
         uses: actions/upload-artifact@v4
@@ -222,6 +223,12 @@ jobs:
         with:
           name: configs
           path: ./configs/
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: ./artifacts/
 
   build-and-push-image:
     name: Build and push Docker image
@@ -248,9 +255,9 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
-          type=raw,value=session-05
           type=sha
-
+          type=ref,event=branch
+    
     - name: Build and push Docker image
       uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
       with:

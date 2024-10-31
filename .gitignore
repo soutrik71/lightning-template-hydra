@@ -176,3 +176,4 @@ artifacts/
 model_output/
 multirun/
 /data
+.dvc/

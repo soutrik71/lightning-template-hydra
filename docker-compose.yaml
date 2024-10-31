@@ -5,7 +5,9 @@ services:
     build:
       context: .
     command: |
-      python -m src.train experiment=catdog_experiment ++task_name=train ++train=True ++test=False
+      python -m src.train --multirun experiment=catdog_experiment_convnext ++task_name=train ++train=True ++test=False hparam=catdog_classifier_covnext && \
+      python -m src.create_artifacts && \
+      touch /app/checkpoints/train_done.flag
     volumes:
       - ./data:/app/data
       - ./checkpoints:/app/checkpoints

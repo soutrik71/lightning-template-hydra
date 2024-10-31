@@ -279,6 +279,8 @@ First, install dvc using the following command
 
 ```bash
 dvc init
+dvc version
+dvc init -f
 dvc add data
 dvc remote add -d myremote /tmp/dvcstore
 dvc push
@@ -367,5 +369,6 @@ dvc repro
   - have hparam null in train and eval config file
   - run the following command to run the hydra experiment
   ```bash
-  
+   python -m src.train --multirun experiment=catdog_experiment_convnext ++task_name=train ++train=True ++test=False hparam=catdog_classifier_covnext
+   python -m src.create_artifacts
   ```
