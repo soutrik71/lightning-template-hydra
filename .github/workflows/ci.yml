@@ -7,7 +7,9 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+      - ${{ github.ref_name }}
+
+  # workflow_dispatch:
     
 # Environment variables for the Docker image
 env:
@@ -15,6 +17,7 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/$(basename ${{ github.repository }})
 
 jobs:
+
   python_basic_test:
     name: Test current codebase and setup Python environment
     runs-on: ubuntu-latest
