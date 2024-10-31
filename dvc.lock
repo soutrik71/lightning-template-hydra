@@ -1,0 +1,31 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: docker-compose run --rm train
+    deps:
+    - path: data
+      hash: md5
+      md5: 9ff62d3dc59e5552f85dd4b55a28a945.dir
+      size: 97446370
+      nfiles: 3003
+    - path: docker-compose.yaml
+      hash: md5
+      md5: 0ce5a43f3a714ec55ac9d759871f6320
+      size: 1658
+      isexec: true
+    - path: src/train.py
+      hash: md5
+      md5: 50c61144d463cc5b2db8ccee8083860d
+      size: 9041
+      isexec: true
+    outs:
+    - path: checkpoints/best-checkpoint.ckpt
+      hash: md5
+      md5: be71e3a452e300208a93b8f8a7dd99dc
+      size: 334080702
+      isexec: true
+    - path: checkpoints/train_done.flag
+      hash: md5
+      md5: bfc5d6f6817daa48ad7ae164aa621dbf
+      size: 20
+      isexec: true
