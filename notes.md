@@ -29,6 +29,8 @@ poetry show
 Type	Purpose	Installation Command
   Normal Dependency	Required for the app to run in production.	poetry add <package>
   Development Dependency	Needed only during development (e.g., testing, linting).	poetry add --dev <package>
+# Add dependencies to the project with specific version
+poetry add <package_name>@<version>
 ```
 
 ## __MULTISTAGEDOCKER SETUP__
@@ -281,6 +283,7 @@ First, install dvc using the following command
 dvc init
 dvc version
 dvc init -f
+dvc config core.autostage true
 dvc add data
 dvc remote add -d myremote /tmp/dvcstore
 dvc push
@@ -321,12 +324,12 @@ dvc remote modify gdrive gdrive_client_secret <>
 # does not work when used from VM and port forwarding to local machine
 ```
 
-Next run the following command to add azure as a remote
+Next run the following command to add azure-blob as a remote
 
 ```bash
 dvc remote remove azblob
-dvc remote add --default azblob azblob://mycontainer/myfolder
-dvc remote modify azblob connection_string <>
+dvc remote add --default azblob azure://mycontainer/myfolder
+dvc remote modify --local azblob connection_string "<>"
 dvc remote modify azblob  allow_anonymous_login true
 dvc push -r azblob
 # this works when used and requires no explicit login

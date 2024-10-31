@@ -123,3 +123,9 @@ jobs:
         with:
           name: configs
           path: ./configs/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: ./artifacts/
