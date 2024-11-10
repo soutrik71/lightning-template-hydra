@@ -30,3 +30,4 @@ hydra:
     params:
       model.lr: interval(1e-5, 1e-3)
       model.weight_decay: interval(1e-6, 1e-4)
+      

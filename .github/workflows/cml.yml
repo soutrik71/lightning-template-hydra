@@ -9,7 +9,7 @@ on:
       - main
       - feat/soutrik-catdogs-advanced
 
-  workflow_dispatch:
+  # workflow_dispatch:
   
 jobs:
   train-and-report:
